@@ -74,7 +74,7 @@ class Context extends ApplicationContext
                 throw new DvbException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
             }
 
-            $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -P -o -";
+            $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -o -";
             $this->logger->debug($processLine);
 
             $this->processesByChannelId[$channelServiceId] = new Process($processLine);
