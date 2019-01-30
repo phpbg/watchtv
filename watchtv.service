@@ -3,10 +3,10 @@ Description=Watch TV server
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/php /home/sam3/SDR/dvb/rtspdvb/server.php
+ExecStart=/usr/bin/php /your/path/to/watchtv/server.php
 Type=simple
-User=sam3
-Group=sam3
+User=<your user>
+Group=<your group>
 Restart=always
 RestartSec=3s
 
