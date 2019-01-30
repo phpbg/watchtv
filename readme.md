@@ -1,6 +1,8 @@
 # Watch TV
 This is a small server that allows you to watch digital television on your computer and your local network.
 
+![](screenshot.png)
+
 ## Features
 * scan and configure TV channels
 * browse your TV channels from a web browser
