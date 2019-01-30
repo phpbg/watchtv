@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Watch TV</title>
+    <?php
+    if (!empty($this->bottomScripts)) {
+        foreach ($this->bottomScripts as $src) {
+            echo "<link rel='preload' href='{$src}' as='script'>";
+        }
+    }
+    if (!empty($this->headCss)) {
+        foreach ($this->headCss as $src) {
+            echo "<link rel='stylesheet' type='text/css' href='{$src}'>";
+        }
+    }
+    if (!empty($this->inlineCss)) {
+        foreach ($this->inlineCss as $css) {
+            echo "<style>{$css}</style>";
+        }
+    }
+    ?>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+<body>
+
+<div id="app">
+    <?php echo $this->content; ?>
+</div>
+
+<?php
+
+if (!empty($this->bottomScripts)) {
+    foreach ($this->bottomScripts as $src) {
+        echo "<script src='{$src}'></script>";
+    }
+}
+
+if (!empty($this->inlineScripts)) {
+    foreach ($this->inlineScripts as $script) {
+        echo "<script>{$script}</script>";
+    }
+}
+
+?>
+
+</body>
+</html>

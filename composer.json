@@ -1,0 +1,24 @@
+{
+  "name": "phpbg/watch-tv",
+  "require": {
+    "php": ">=7.0",
+    "react/socket": "^1.1",
+    "psr/log": "^1.0",
+    "myclabs/php-enum": "^1.5",
+    "react/datagram": "^1.4",
+    "react/child-process": "^0.6",
+    "react/stream": "^1.0",
+    "phpbg/mpegts": "^0.1.0",
+    "phpbg/dvbpsi": "dev-master",
+    "phpbg/mini-httpd": "^0.3",
+    "phpbg/rtsp": "^0.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "PhpBg\\WatchTv\\": "./src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.5"
+  }
+}

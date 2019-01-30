@@ -1,0 +1,15 @@
+<div class="w3-container">
+    <h1 class="w3-center">Watch TV</h1>
+    <div class='w3-row'>
+        <?php
+        foreach ($this->channelsByName as $channelName => $channelDescriptor) {
+            if (empty($channelDescriptor['SERVICE_ID']) || empty($channelDescriptor['FREQUENCY'])) {
+                continue;
+            }
+            echo "<div class='w3-col s12 m4 l3'><a class='w3-border w3-center' href='rtsp://{$this->publicHostname}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}'>{$channelName}</a></div>";
+        }
+        ?>
+    </div>
+</div>
+
+<p class="w3-container"><a href="/configure">Go to configuration</a></p>

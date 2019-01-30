@@ -1,0 +1,14 @@
+[Unit]
+Description=Watch TV server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/php /home/sam3/SDR/dvb/rtspdvb/server.php
+Type=simple
+User=sam3
+Group=sam3
+Restart=always
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target
