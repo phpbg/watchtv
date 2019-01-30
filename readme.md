@@ -85,9 +85,9 @@ If you want the server to start automatically at boot, install it as a service.
 1. edit `watchtv.service`
     * fix `ExecStart` path
     * set `User` and `Group`
-2. copy `watchtv.service` to `/lib/systemd/system/`
+2. copy `watchtv.service` to `/etc/systemd/system/`
     ```shell
-    $ sudo cp watchtv.service /lib/systemd/system/
+    $ sudo cp watchtv.service /etc/systemd/system/
     ```
 3. Reload systemd daemon
     ```shell
@@ -101,7 +101,7 @@ If you want the server to start automatically at boot, install it as a service.
     ```shell
     $ sudo systemctl enable watchtv
     ```
-To check logs run `$ journald -u watchtv`
+To check logs run `$ journalctl -u watchtv`
    
 ## FAQ
 ### Is my TV adapter compatible
