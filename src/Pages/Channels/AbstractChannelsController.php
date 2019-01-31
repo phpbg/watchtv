@@ -26,34 +26,33 @@
 
 namespace PhpBg\WatchTv\Pages\Channels;
 
-use PhpBg\MiniHttpd\HttpException\RedirectException;
-use PhpBg\MiniHttpd\Middleware\ContextTrait;
-use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
+use PhpBg\MiniHttpd\Controller\AbstractController;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Channels extends AbstractChannelsController
+abstract class AbstractChannelsController extends AbstractController
 {
-    use ContextTrait;
+    protected $rtspPort;
+    protected $channels;
+
+    public function __construct(int $rtspPort, \PhpBg\WatchTv\Dvb\Channels $channels)
+    {
+        $this->rtspPort = $rtspPort;
+        $this->channels = $channels;
+    }
 
     /**
-     * Main homepage listing channels
+     * Return hostname, without port
+     *
+     * @param ServerRequestInterface $request
+     * @return string
      */
-    public function __invoke(ServerRequestInterface $request)
+    protected function getHost(ServerRequestInterface $request): string
     {
-        try {
-            $this->channels->getChannelsByName();
-        } catch (ChannelsNotFoundException $e) {
-            // Channels not yet configured, redirect to configuration page
-            throw new RedirectException('/configure');
+        $host = $request->getHeaderLine('Host');
+        $portPos = strpos($host, ':');
+        if ($portPos !== false) {
+            $host = substr($host, 0, $portPos);
         }
-
-        $context = $this->getContext($request);
-        $context->renderOptions['headCss'] = ['/w3css-4.12.css'];
-
-        return [
-            'channelsByName' => $this->channels->getChannelsByName(),
-            'publicHostname' => $this->getHost($request),
-            'rtspPort' => $this->rtspPort
-        ];
+        return $host;
     }
 }

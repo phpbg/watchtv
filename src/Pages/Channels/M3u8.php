@@ -26,17 +26,15 @@
 
 namespace PhpBg\WatchTv\Pages\Channels;
 
+use GuzzleHttp\Psr7\Response;
 use PhpBg\MiniHttpd\HttpException\RedirectException;
-use PhpBg\MiniHttpd\Middleware\ContextTrait;
 use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Channels extends AbstractChannelsController
+class M3u8 extends AbstractChannelsController
 {
-    use ContextTrait;
-
     /**
-     * Main homepage listing channels
+     * Download all channels as a m3u8 playlist
      */
     public function __invoke(ServerRequestInterface $request)
     {
@@ -47,13 +45,16 @@ class Channels extends AbstractChannelsController
             throw new RedirectException('/configure');
         }
 
-        $context = $this->getContext($request);
-        $context->renderOptions['headCss'] = ['/w3css-4.12.css'];
+        $content = "#EXTM3U\r\n";
+        $host = $this->getHost($request);
+        foreach ($this->channels->getChannelsByName() as $channelName => $channelDescriptor) {
+            $content .= "#EXTINF:-1,{$channelName}\r\n";
+            $content .= "rtsp://{$host}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}\r\n";
+        }
 
-        return [
-            'channelsByName' => $this->channels->getChannelsByName(),
-            'publicHostname' => $this->getHost($request),
-            'rtspPort' => $this->rtspPort
-        ];
+        return new Response(200, [
+            'Content-type' => 'application/mpegurl',
+            'Content-Disposition' => 'inline; filename=watchtv.m3u8'
+        ], $content);
     }
 }

@@ -7,6 +7,7 @@ This is a small server that allows you to watch digital television on your compu
 * scan and configure TV channels
 * browse your TV channels from a web browser
 * stream tv using RTSP 1.0
+* Kodi support (playing only, no EPG yet, see [below](#kodi))
 
 ## Is is compatible in my country?
 Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestrial_television_standards.svg) to know your broadcasting technology.
@@ -21,7 +22,6 @@ It is in alpha stage, slow, but should be reliable enough (I've been running a s
 ## TODO LIST - Help wanted
 These are ideas, please provide feedback and help:
 * EPG (electronic program guide) (parsing done, needs UI and background scanning)
-* generate a playlist m3u of channels (easy pick)
 * watch simultaneously all channels in the same multiplex
 * multiple adapter support
 * pause (live recording)
@@ -45,7 +45,7 @@ You can run the server and the client on the same device if you want.
   * [VLC](https://www.videolan.org/vlc): expect troubles with VLC
     * TCP does not work with VLC (it is supported but I didn't manage to make it work)
     * UDP is the default and works, but glitches are expected, probably because TS stream should be converted to RTP? (if you know well RTSP and RTP please feedback wanted)
-  * [Kodi](https://kodi.tv/) will soon be supported using M3U playlists
+  * <a name="kodi"></a>[Kodi](https://kodi.tv/) using [IPTV Simple Client](https://kodi.wiki/view/Add-on:IPTV_Simple_Client) You can download m3u8 on main channels page
 * Android
   * [MPV-android](https://play.google.com/store/apps/details?id=is.xyz.mpv) (recommended)
   * [VLC for Android](https://play.google.com/store/apps/details?id=org.videolan.vlc) (same limitations as VLC for desktop)

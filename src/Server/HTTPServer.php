@@ -29,6 +29,7 @@ namespace PhpBg\WatchTv\Server;
 use PhpBg\WatchTv\Api\CheckConfiguration;
 use PhpBg\WatchTv\Api\InitialScanFiles;
 use PhpBg\WatchTv\Pages\Channels\Channels;
+use PhpBg\WatchTv\Pages\Channels\M3u8;
 use PhpBg\WatchTv\Pages\Configure\Configure;
 use PhpBg\MiniHttpd\Model\Route;
 use PhpBg\MiniHttpd\Renderer\Json;
@@ -43,6 +44,7 @@ class HTTPServer
         $defaultRenderer = new Phtml($dvbContext->rootPath . '/src/Pages/layout.phtml');
         $routes = [
             '/' => new Route(new Channels($dvbContext->rtspPort, $dvbContext->channels), $defaultRenderer),
+            '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
