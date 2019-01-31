@@ -39,12 +39,16 @@ You can run the server and the client on the same device if you want.
 
 ### Client
 * Must be powerful enough to decode TV streams, that will probably be MPEG 2 (H.262) or MPEG 4 (H.264) or MPEG H (H.265).
-* MPV (recommended)
-* MPlayer
-* VLC: expect troubles with VLC
-  * TCP does not work with VLC (it is supported but I didn't manage to make it work)
-  * UDP is the default and works, but glitches are expected, probably because TS stream should be converted to RTP? (if you know well RTSP and RTP please feedback wanted)
-* Kodi will soon be supported using M3U playlists
+* Desktop:
+  * [MPV](https://mpv.io/) (recommended)
+  * [MPlayer](http://www.mplayerhq.hu)
+  * [VLC](https://www.videolan.org/vlc): expect troubles with VLC
+    * TCP does not work with VLC (it is supported but I didn't manage to make it work)
+    * UDP is the default and works, but glitches are expected, probably because TS stream should be converted to RTP? (if you know well RTSP and RTP please feedback wanted)
+  * [Kodi](https://kodi.tv/) will soon be supported using M3U playlists
+* Android
+  * [MPV-android](https://play.google.com/store/apps/details?id=is.xyz.mpv) (recommended)
+  * [VLC for Android](https://play.google.com/store/apps/details?id=org.videolan.vlc) (same limitations as VLC for desktop)
 * Web browser if you want to lauch channels from it
 
 ### Server
