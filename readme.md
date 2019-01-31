@@ -76,7 +76,7 @@ Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberr
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
-    $ tar xf watchtv-0.1.0.tar.gz
+    $ tar xf watchtv-0.2.0.tar.gz
     ```
 3. Test the server manually
     ```shell
