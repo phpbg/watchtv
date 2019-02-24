@@ -189,19 +189,19 @@ class RTSPServer
 
             $uri = trim($request->uri, '/');
             $resourcePath = explode('/', $uri);
-            $session->channelServiceId = array_pop($resourcePath);
+            $channelServiceId = array_pop($resourcePath);
             $session->uri = $uri;
             try {
-                $session->dataStream = $this->dvbContext->getStreamForChannelServiceId($session->channelServiceId);
-                $session->pids = $this->dvbContext->channels->getPidsByServiceId($session->channelServiceId);
+                $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
+                $tsstream = $this->dvbContext->getTsStream($channelServiceId);
+                $tsstream->addClient($session, $pids);
 
                 $this->sessions[$session->id] = $session;
 
-                $session->on('teardown', function ($serverTeardown) use ($session, $connection) {
+                $session->on('close', function ($serverTeardown) use ($session, $connection) {
                     $origin = $serverTeardown ? 'server' : 'client';
                     $this->dvbContext->logger->info("Session {$session->id} teardown originated by {$origin}");
                     unset($this->sessions[$session->id]);
-                    $this->dvbContext->releaseStreamForChannelServiceId($session->channelServiceId);
                     if ($serverTeardown && $connection->isWritable()) {
                         //Emitting teardown originated from server is RTSP 2.0 only, but whatever... :-)
                         $response = new Request();

@@ -27,8 +27,9 @@
 namespace PhpBg\WatchTv\Server;
 
 use PhpBg\MiniHttpd\Model\ApplicationContext;
+use PhpBg\WatchTv\Dvb\Channels;
+use PhpBg\WatchTv\Dvb\TSStream;
 use React\ChildProcess\Process;
-use React\Stream\ReadableStreamInterface;
 
 class Context extends ApplicationContext
 {
@@ -46,87 +47,43 @@ class Context extends ApplicationContext
      */
     public $rootPath;
 
-    private $streamsByChannelId;
-    private $streamsCountByChannelId;
-    private $processesByChannelId;
+    private $streamsByChannelFrequency;
     private $maxProcessAllowed;
 
     public function __construct()
     {
-        $this->streamsByChannelId = [];
-        $this->streamsCountByChannelId = [];
-        $this->processesByChannelId = [];
+        $this->streamsByChannelFrequency = [];
         $this->maxProcessAllowed = 1;
     }
 
     /**
+     * Return a TSStream valid for the requested channelServiceId
+     *
      * @param int $channelServiceId
-     * @return ReadableStreamInterface
+     * @return TSStream
      * @throws DvbException
      */
-    public function getStreamForChannelServiceId(int $channelServiceId): ReadableStreamInterface
-    {
-        if (! isset($this->streamsByChannelId[$channelServiceId])) {
-            $channelDescriptor = $this->channels->getChannelByServiceId($channelServiceId);
-            $channelsFile = $this->channels->getChannelsFilePath();
+    public function getTsStream(int $channelServiceId): TSStream {
+        $channelDescriptor = $this->channels->getChannelByServiceId($channelServiceId);
+        $channelFrequency = $channelDescriptor[1]['FREQUENCY'] ?? null;
+        if (empty($channelFrequency)) {
+            throw new DvbException("Unable to find channel frequency for channel $channelServiceId");
+        }
 
-            if (count($this->processesByChannelId) >= $this->maxProcessAllowed) {
+        if (! isset($this->streamsByChannelFrequency[$channelFrequency])) {
+            $channelsFile = $this->channels->getChannelsFilePath();
+            if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed) {
                 throw new DvbException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
             }
-
-            $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -o -";
+            $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -P -o -";
             $this->logger->debug($processLine);
-
-            $this->processesByChannelId[$channelServiceId] = new Process($processLine);
-            $that = $this;
-            $this->processesByChannelId[$channelServiceId]->on('exit', function() use ($channelServiceId, $that) {
-                if (isset($that->streamsByChannelId[$channelServiceId])) {
-                    $this->logger->debug("Process exit before cleanup: {$that->processesByChannelId[$channelServiceId]->getCommand()}");
-                    unset($that->streamsByChannelId[$channelServiceId]);
-                    unset($that->streamsCountByChannelId[$channelServiceId]);
-                    $that->processesByChannelId[$channelServiceId]->removeAllListeners();
-                    unset($that->processesByChannelId[$channelServiceId]);
-                } else {
-                    $this->logger->debug("Process exit after cleanup");
-                }
+            $process = new Process($processLine);
+            $tsStream = new TSStream($process, $this->logger, $this->loop);
+            $this->streamsByChannelFrequency[$channelFrequency] = $tsStream;
+            $tsStream->on('exit', function() use ($channelFrequency) {
+                unset($this->streamsByChannelFrequency[$channelFrequency]);
             });
-            $this->processesByChannelId[$channelServiceId]->start($this->loop);
-
-            $this->processesByChannelId[$channelServiceId]->stderr->on('data', function ($chunk) {
-                if (empty($chunk)) {
-                    return;
-                }
-                $this->logger->warning($chunk);
-            });
-
-            $this->streamsByChannelId[$channelServiceId] = $this->processesByChannelId[$channelServiceId]->stdout;
-            $this->streamsCountByChannelId[$channelServiceId] = 0;
         }
-        $this->streamsCountByChannelId[$channelServiceId]++;
-        return $this->streamsByChannelId[$channelServiceId];
-    }
-
-    public function releaseStreamForChannelServiceId(int $channelServiceId) {
-        if (isset($this->streamsByChannelId[$channelServiceId])) {
-            $this->streamsCountByChannelId[$channelServiceId]--;
-            if ($this->streamsCountByChannelId[$channelServiceId] <= 0) {
-                //Release process
-                if (isset($this->processesByChannelId[$channelServiceId]) && $this->processesByChannelId[$channelServiceId]->isRunning()) {
-                    if (isset($this->processesByChannelId[$channelServiceId]->stdin)) {
-                        $this->processesByChannelId[$channelServiceId]->stdin->close();
-                    }
-                    if (isset($this->processesByChannelId[$channelServiceId]->stout)) {
-                        $this->processesByChannelId[$channelServiceId]->stout->close();
-                    }
-                    if (isset($this->processesByChannelId[$channelServiceId]->stderr)) {
-                        $this->processesByChannelId[$channelServiceId]->stderr->close();
-                    }
-                    $this->processesByChannelId[$channelServiceId]->terminate(SIGKILL);
-                }
-                unset($this->streamsByChannelId[$channelServiceId]);
-                unset($this->streamsCountByChannelId[$channelServiceId]);
-                unset($this->processesByChannelId[$channelServiceId]);
-            }
-        }
+        return $this->streamsByChannelFrequency[$channelFrequency];
     }
 }

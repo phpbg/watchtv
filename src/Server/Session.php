@@ -26,22 +26,22 @@
 
 namespace PhpBg\WatchTv\Server;
 
-use Evenement\EventEmitter;
-use PhpBg\MpegTs\Packetizer;
-use PhpBg\MpegTs\Pid;
+use Evenement\EventEmitterTrait;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 use React\Socket\ConnectionInterface;
-use React\Stream\ReadableStreamInterface;
+use React\Stream\WritableStreamInterface;
 
 /**
  * Class Session
- * Events
- * teardown
- * error
+ * Events implemented:
+ *   close
+ *   error
  */
-class Session extends EventEmitter
+class Session implements WritableStreamInterface
 {
+    use EventEmitterTrait;
+
     /**
      * @var int Session id
      */
@@ -74,15 +74,6 @@ class Session extends EventEmitter
 
     public $uri;
 
-    public $channelServiceId;
-
-    public $pids;
-
-    /**
-     * @var ReadableStreamInterface
-     */
-    public $dataStream;
-
     /**
      * @var LoopInterface
      */
@@ -97,16 +88,6 @@ class Session extends EventEmitter
      * @var \React\Datagram\Socket
      */
     private $udpClient;
-
-    /**
-     * @var MpegTsParser
-     */
-    private $tsParser;
-
-    /**
-     * @var Packetizer
-     */
-    private $tsPacketizer;
 
     /**
      * How long the server is prepared to wait between RTSP commands before closing the session due to lack of activity
@@ -142,6 +123,10 @@ class Session extends EventEmitter
      */
     private $log;
 
+    private $playRequested = false;
+
+    private $isWritable = true;
+
     public function __construct(int $id, LoopInterface $loop, ConnectionInterface $connection, LoggerInterface $logger)
     {
         $this->log = $logger;
@@ -172,17 +157,11 @@ class Session extends EventEmitter
 
     public function play()
     {
+        $this->playRequested = true;
         $this->keepAlive();
         $remoteIp = $this->clientIp;
         $remotePort = $this->ports[0];
         $this->log->info("Requesting PLAY to {$this->proto}://{$remoteIp}:{$remotePort}");
-
-        if (empty($this->dataStream) || !$this->dataStream->isReadable()) {
-            // Stream already closed
-            $this->log->debug("Stream closed");
-            $this->serverTeardown();
-            return;
-        }
 
         if ($this->proto === 'UDP') {
             //UDP packet size must be less than 65,507 bytes = 65,535 − 8 bytes UDP header − 20 bytes IP header
@@ -195,31 +174,6 @@ class Session extends EventEmitter
             //Max useable size is 348 mpegts packets @ 188 bytes = 65424
             $this->bufferCountFlush = 348;
         }
-
-        $psiParser = new \PhpBg\DvbPsi\Parser();
-        $psiParser->on('error', [$this, '_handleDataStreamErrors']);
-
-        $this->tsParser = new \PhpBg\MpegTs\Parser();
-        $this->tsParser->on('error', [$this, '_handleDataStreamErrors']);
-        $this->tsParser->on('ts', [$this, '_handleRawData']);
-        $this->tsParser->on('pes', function ($pid, $data) use ($psiParser) {
-            //TODO
-            $psiParser->write($data);
-        });
-
-        // Pipe stdout to a mpegts packetizer that will emit complete proper mpegts packets
-        $this->tsPacketizer = new Packetizer();
-        $this->tsPacketizer->on('data', [$this->tsParser, 'write']);
-
-        foreach ($this->pids as $pid) {
-            $this->log->debug(sprintf("Adding PID passthrough: %d (0x%x)", $pid, $pid));
-            $this->tsParser->addPidPassthrough(new Pid($pid));
-        }
-
-        $this->dataStream->on('error', [$this, '_handleDataStreamErrors']);
-        $this->dataStream->once('end', [$this, 'serverTeardown']);
-        $this->dataStream->once('close', [$this, 'serverTeardown']);
-        $this->dataStream->on('data', [$this->tsPacketizer, 'write']);
 
         if ($this->isInterleaved) {
             //Interleaved mode : watch for connection events
@@ -253,12 +207,18 @@ class Session extends EventEmitter
         });
     }
 
-    public function _handleRawData($pid, $data)
+    public function isWritable() {
+        return $this->isWritable;
+    }
+
+    public function write($data)
     {
+        if (! $this->playRequested || ! $this->isWritable) {
+            return;
+        }
         $this->rawData[] = $data;
         $packets = count($this->rawData);
         if ($packets >= $this->bufferCountFlush) {
-
             $buffer = implode('', $this->rawData);
             $this->rawData = [];
 
@@ -281,6 +241,17 @@ class Session extends EventEmitter
         }
     }
 
+    public function end($data = null) {
+        if (! empty($data)) {
+            $this->write($data);
+        }
+        $this->teardown(true);
+    }
+
+    public function close() {
+        $this->teardown(true);
+    }
+
     public function serverTeardown()
     {
         $this->teardown(true);
@@ -291,18 +262,10 @@ class Session extends EventEmitter
      */
     public function teardown($serverTeardown = false)
     {
+        $this->isWritable = false;
         if (isset($this->udpClient)) {
             $this->udpClient->close();
             unset($this->udpClient);
-        }
-        if (isset($this->dataStream)) {
-            $this->dataStream->removeListener('end', [$this, 'serverTeardown']);
-            $this->dataStream->removeListener('close', [$this, 'serverTeardown']);
-            $this->dataStream->removeListener('error', [$this, '_handleDataStreamErrors']);
-            if (isset($this->tsPacketizer)) {
-                $this->dataStream->removeListener('data', [$this->tsPacketizer, 'write']);
-            }
-            unset($this->dataStream);
         }
         if (isset($this->connection)) {
             $this->connection->removeListener('end', [$this, 'teardown']);
@@ -314,15 +277,10 @@ class Session extends EventEmitter
             $this->loop->cancelTimer($this->lastActivityTimer);
         }
         if (!empty($this->listeners)) {
-            $this->emit('teardown', [$serverTeardown]);
+            $this->emit('close', [$serverTeardown]);
             $this->removeAllListeners();
             $this->log->debug("Used: " . (memory_get_usage(false) / 1024 / 1024) . " MiB");
             $this->log->debug("Allocated: " . (memory_get_usage(true) / 1024 / 1024) . " MiB");
         }
-    }
-
-    public function _handleDataStreamErrors(\Exception $exception)
-    {
-        $this->log->debug("Parser or stream error", ['exception' => $exception]);
     }
 }

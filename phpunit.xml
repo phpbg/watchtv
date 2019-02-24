@@ -25,16 +25,12 @@
     verbose="false">
     <testsuites>
         <testsuite name="My Test Suite">
-            <directory suffix="Test.php">./tests/</directory>
+            <directory suffix="Test.php">tests/</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./</directory>
-            <exclude>
-                <directory>./vendor/</directory>
-                <file>rtsp.php</file>
-            </exclude>
+            <directory suffix=".php">src/</directory>
         </whitelist>
     </filter>
 </phpunit>
