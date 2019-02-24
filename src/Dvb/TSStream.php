@@ -29,6 +29,7 @@ namespace PhpBg\WatchTv\Dvb;
 use Evenement\EventEmitter;
 use Evenement\EventEmitterTrait;
 use PhpBg\DvbPsi\Parser as PsiParser;
+use PhpBg\MpegTs\Packetizer;
 use PhpBg\MpegTs\Parser as TsParser;
 use PhpBg\MpegTs\Pid;
 use Psr\Log\LoggerInterface;
@@ -62,6 +63,11 @@ class TSStream extends EventEmitter
      * @var TsParser
      */
     private $tsParser;
+
+    /**
+     * @var Packetizer
+     */
+    private $tsPacketizer;
 
     /**
      * @var [<pid> => [<client>, <client>, ...]]
@@ -100,9 +106,13 @@ class TSStream extends EventEmitter
             $this->psiParser->write($data);
         });
 
+        $this->tsPacketizer = new Packetizer();
+        $this->tsPacketizer->on('error', [$this, '_handleDataStreamErrors']);
+        $this->tsPacketizer->on('data', [$this->tsParser, 'write']);
+
         // We don't listen to stdout end or close event because we listen on exit on process and that should be enough
         $this->process->stdout->on('error', [$this, '_handleDataStreamErrors']);
-        $this->process->stdout->on('data', [$this->tsParser, 'write']);
+        $this->process->stdout->on('data', [$this->tsPacketizer, 'write']);
     }
 
     public function _handleDataStreamErrors(\Exception $exception)
