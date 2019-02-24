@@ -218,9 +218,11 @@ class RTSPServer
                 });
 
             } catch (DvbException $e) {
+                $this->dvbContext->logger->error("", ['exception' => $e]);
                 $response->statusCode = 500;
                 $response->body = $e->getMessage();
             } catch (\Exception $e) {
+                $this->dvbContext->logger->error("", ['exception' => $e]);
                 $response->statusCode = 500;
             }
         }

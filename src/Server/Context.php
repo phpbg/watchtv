@@ -64,6 +64,7 @@ class Context extends ApplicationContext
      * @throws DvbException
      */
     public function getTsStream(int $channelServiceId): TSStream {
+        $this->logger->debug("getTsStream() for $channelServiceId");
         $channelDescriptor = $this->channels->getChannelByServiceId($channelServiceId);
         $channelFrequency = $channelDescriptor[1]['FREQUENCY'] ?? null;
         if (empty($channelFrequency)) {
