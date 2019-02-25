@@ -190,19 +190,18 @@ class Session implements WritableStreamInterface
             return;
         }
 
-        $that = $this;
         $factory = new \React\Datagram\Factory($this->loop);
-        $factory->createClient("{$remoteIp}:{$remotePort}")->then(function (\React\Datagram\Socket $client) use ($that) {
+        $factory->createClient("{$remoteIp}:{$remotePort}")->then(function (\React\Datagram\Socket $client) {
             $this->log->debug("UDP connected");
-            $that->udpClient = $client;
-            $client->once('error', function ($e) use ($that) {
-                $this->log->debug("UDP client error");
-                $that->teardown();
+            $this->udpClient = $client;
+            $client->once('error', function ($e) {
+                $this->log->debug("UDP client error", ['exception' => $e]);
+                $this->teardown();
             });
-            $client->once('close', function () use ($that) {
+            $client->once('close', function () {
                 $this->log->debug("UDP client close");
-                unset($that->udpClient);
-                $that->teardown();
+                unset($this->udpClient);
+                $this->teardown();
             });
         });
     }

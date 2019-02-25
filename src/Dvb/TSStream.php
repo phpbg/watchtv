@@ -196,6 +196,7 @@ class TSStream extends EventEmitter
      * @param WritableStreamInterface $client
      */
     public function removeClient(WritableStreamInterface $client) {
+        $this->logger->debug("Remove client");
         foreach ($this->tsClients as $pid => $clients) {
             $pos = array_search($client, $clients);
             if ($pos === false) {
@@ -210,7 +211,12 @@ class TSStream extends EventEmitter
             }
         }
         if (empty($this->tsClients)) {
+            $this->logger->debug("Terminate process");
             $this->process->terminate(SIGKILL);
+
+            // Force exit handler because otherwise it will happen in a future tick, and it may be too late
+            // e.g. the client request another channel, but we may think we cannot start a new process
+            $this->_handleExit();
         }
     }
 
