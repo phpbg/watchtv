@@ -30,6 +30,10 @@ use PhpBg\Rtsp\Message\Enum\RequestMethod;
 use PhpBg\Rtsp\Message\Enum\RtspVersion;
 use PhpBg\Rtsp\Message\Request;
 use PhpBg\Rtsp\Message\Response;
+use PhpBg\Rtsp\Middleware\AutoContentLength;
+use PhpBg\Rtsp\Middleware\AutoCseq;
+use PhpBg\Rtsp\Middleware\Log;
+use PhpBg\Rtsp\Middleware\MiddlewareStack;
 use PhpBg\Rtsp\Server;
 use React\Socket\ConnectionInterface;
 
@@ -45,48 +49,54 @@ class RTSPServer
         $this->sessions = [];
         $this->dvbContext = $dvbContext;
 
-        $rtspServer = new Server(function (Request $request, ConnectionInterface $connection) {
-            $this->dvbContext->logger->debug("Request:\r\n$request");
-
-            $response = \PhpBg\Rtsp\Message\MessageFactory::response();
-            $response->setHeader('cseq', $request->getHeader('cseq'));
-            switch ($request->method) {
-                case \PhpBg\Rtsp\Message\Enum\RequestMethod::OPTIONS:
-                    $this->options($request, $connection, $response);
-                    break;
-
-                case \PhpBg\Rtsp\Message\Enum\RequestMethod::DESCRIBE:
-                    $this->describe($request, $connection, $response);
-                    break;
-
-                case \PhpBg\Rtsp\Message\Enum\RequestMethod::SETUP:
-                    $this->setup($request, $connection, $response);
-                    break;
-
-                case \PhpBg\Rtsp\Message\Enum\RequestMethod::PLAY:
-                    $this->play($request, $connection, $response);
-                    break;
-
-                case \PhpBg\Rtsp\Message\Enum\RequestMethod::TEARDOWN:
-                    $this->teardown($request, $connection, $response);
-                    break;
-
-                default:
-                    $response->statusCode = 500;
-                    $response->reasonPhrase = 'not supported';
-            }
-
-            if (isset($response->body)) {
-                $response->setHeader('content-length', strlen($response->body));
-            }
-            $this->dvbContext->logger->debug("Response:\r\n$response");
-            return $response;
-
-        });
+        $stack = [
+            new Log($this->dvbContext->logger),
+            new AutoCseq(),
+            new AutoContentLength(),
+            [$this, 'routeHandler']
+        ];
+        $handler = new MiddlewareStack($stack);
+        $rtspServer = new Server($handler);
         $rtspServer->on('error', function (\Exception $e) {
             $this->dvbContext->logger->error("Error", ['exception' => $e]);
         });
         $rtspServer->listen($socket);
+    }
+
+    /**
+     * Route all RTSP requests
+     * @param Request $request
+     * @param ConnectionInterface $connection
+     * @return Response
+     */
+    public function routeHandler(Request $request, ConnectionInterface $connection) {
+        $response = \PhpBg\Rtsp\Message\MessageFactory::response();
+        switch ($request->method) {
+            case \PhpBg\Rtsp\Message\Enum\RequestMethod::OPTIONS:
+                $this->options($request, $connection, $response);
+                break;
+
+            case \PhpBg\Rtsp\Message\Enum\RequestMethod::DESCRIBE:
+                $this->describe($request, $connection, $response);
+                break;
+
+            case \PhpBg\Rtsp\Message\Enum\RequestMethod::SETUP:
+                $this->setup($request, $connection, $response);
+                break;
+
+            case \PhpBg\Rtsp\Message\Enum\RequestMethod::PLAY:
+                $this->play($request, $connection, $response);
+                break;
+
+            case \PhpBg\Rtsp\Message\Enum\RequestMethod::TEARDOWN:
+                $this->teardown($request, $connection, $response);
+                break;
+
+            default:
+                $response->statusCode = 500;
+                $response->reasonPhrase = 'not supported';
+        }
+        return $response;
     }
 
     /**
@@ -220,10 +230,12 @@ class RTSPServer
             } catch (DvbException $e) {
                 $this->dvbContext->logger->error("", ['exception' => $e]);
                 $response->statusCode = 500;
+                $response->reasonPhrase = 'Internal server error';
                 $response->body = $e->getMessage();
             } catch (\Exception $e) {
                 $this->dvbContext->logger->error("", ['exception' => $e]);
                 $response->statusCode = 500;
+                $response->reasonPhrase = 'Internal server error';
             }
         }
     }

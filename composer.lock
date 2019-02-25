@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "57208bf6f0e9aecfe7a90d54443f6c6e",
+    "content-hash": "c0cb48d1984f8abcad89372ee2d2bb4e",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -348,16 +348,16 @@
         },
         {
             "name": "phpbg/rtsp",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/rtsp.git",
-                "reference": "82045bd88f91f6170bcd5f72f930e18f64155aa7"
+                "reference": "a1e397691d6f5b4082059eb0d9b8a3ec0000fafe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/rtsp/zipball/82045bd88f91f6170bcd5f72f930e18f64155aa7",
-                "reference": "82045bd88f91f6170bcd5f72f930e18f64155aa7",
+                "url": "https://api.github.com/repos/phpbg/rtsp/zipball/a1e397691d6f5b4082059eb0d9b8a3ec0000fafe",
+                "reference": "a1e397691d6f5b4082059eb0d9b8a3ec0000fafe",
                 "shasum": ""
             },
             "require": {
@@ -368,6 +368,7 @@
                 "react/socket": "^1.1"
             },
             "require-dev": {
+                "mockery/mockery": "^1.2",
                 "phpunit/phpunit": "^6.5"
             },
             "type": "library",
@@ -393,7 +394,7 @@
                 "rtsp",
                 "server"
             ],
-            "time": "2018-12-02T12:32:16+00:00"
+            "time": "2019-02-25T10:37:08+00:00"
         },
         {
             "name": "psr/container",
@@ -2267,6 +2268,7 @@
                 "mock",
                 "xunit"
             ],
+            "abandoned": true,
             "time": "2018-08-09T05:50:03+00:00"
         },
         {
@@ -2873,7 +2875,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "backendtea@gmail.com"
+                    "email": "BackEndTea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",

@@ -11,7 +11,7 @@
     "phpbg/mpegts": "^0.1.0",
     "phpbg/dvbpsi": "dev-master",
     "phpbg/mini-httpd": "^0.3",
-    "phpbg/rtsp": "^0.2"
+    "phpbg/rtsp": "^0.3"
   },
   "autoload": {
     "psr-4": {
