@@ -8,6 +8,7 @@ This is a small server that allows you to watch digital television on your compu
 * browse your TV channels from a web browser
 * stream tv using RTSP 1.0
 * Kodi support (playing only, no EPG yet, see [below](#kodi))
+* watch simultaneously all channels in the same multiplex
 
 ## Is is compatible in my country?
 Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestrial_television_standards.svg) to know your broadcasting technology.
@@ -22,7 +23,6 @@ It is in alpha stage, slow, but should be reliable enough (I've been running a s
 ## TODO LIST - Help wanted
 These are ideas, please provide feedback and help:
 * EPG (electronic program guide) (parsing done, needs UI and background scanning)
-* watch simultaneously all channels in the same multiplex
 * multiple adapter support
 * pause (live recording)
 * scheduled recording
@@ -76,7 +76,7 @@ Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberr
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
-    $ tar xf watchtv-0.2.0.tar.gz
+    $ tar xf watchtv-0.3.0.tar.gz
     ```
 3. Test the server manually
     ```shell
