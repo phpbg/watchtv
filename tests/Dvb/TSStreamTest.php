@@ -47,4 +47,30 @@ class TSStreamTest extends \PHPUnit\Framework\TestCase {
         $loop->run();
         $this->assertTrue($hasExited);
     }
+
+    public function testRegisterParser() {
+        $process = new \React\ChildProcess\Process('foo');
+        $logger = new \Psr\Log\NullLogger();
+        $loop = \React\EventLoop\Factory::create();
+        $tsstream = new \PhpBg\WatchTv\Dvb\TSStream($process, $logger, $loop);
+
+        $parser = new \PhpBg\DvbPsi\Parser();
+        $this->assertEmpty($parser->listeners());
+        $tsstream->registerPsiParser($parser);
+        $this->assertNotEmpty($parser->listeners());
+    }
+
+    public function testUnRegisterParser() {
+        $process = new \React\ChildProcess\Process('foo');
+        $logger = new \Psr\Log\NullLogger();
+        $loop = \React\EventLoop\Factory::create();
+        $tsstream = new \PhpBg\WatchTv\Dvb\TSStream($process, $logger, $loop);
+
+        $parser = new \PhpBg\DvbPsi\Parser();
+        $tsstream->registerPsiParser($parser);
+        $this->assertNotEmpty($parser->listeners());
+
+        $tsstream->unregisterPsiParser();
+        $this->assertEmpty($parser->listeners());
+    }
 }

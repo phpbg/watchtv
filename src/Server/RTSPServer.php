@@ -203,7 +203,7 @@ class RTSPServer
             $session->uri = $uri;
             try {
                 $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
-                $tsstream = $this->dvbContext->getTsStream($channelServiceId);
+                $tsstream = $this->dvbContext->tsStreamFactory->getTsStream($channelServiceId);
                 $tsstream->addClient($session, $pids);
 
                 $this->sessions[$session->id] = $session;

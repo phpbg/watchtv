@@ -24,9 +24,9 @@
  * SOFTWARE.
  */
 
-namespace PhpBg\WatchTv\Server;
+namespace PhpBg\WatchTv\Dvb;
 
-class MaxProcessReachedException extends DvbException
+class MaxProcessReachedException extends \Exception
 {
 
 }

@@ -28,13 +28,20 @@ namespace PhpBg\WatchTv\Server;
 
 use PhpBg\MiniHttpd\Model\ApplicationContext;
 use PhpBg\WatchTv\Dvb\Channels;
-use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
-use PhpBg\WatchTv\Dvb\TSStream;
-use React\ChildProcess\Process;
+use PhpBg\WatchTv\Dvb\EPGGrabber;
+use PhpBg\WatchTv\Dvb\TSStreamFactory;
+
 
 class Context extends ApplicationContext
 {
+    /**
+     * @var int
+     */
     public $httpPort;
+
+    /**
+     * @var int
+     */
     public $rtspPort;
 
     /**
@@ -48,45 +55,13 @@ class Context extends ApplicationContext
      */
     public $rootPath;
 
-    private $streamsByChannelFrequency;
-    private $maxProcessAllowed;
-
-    public function __construct()
-    {
-        $this->streamsByChannelFrequency = [];
-        $this->maxProcessAllowed = 1;
-    }
+    /**
+     * @var TSStreamFactory
+     */
+    public $tsStreamFactory;
 
     /**
-     * Return a TSStream valid for the requested channelServiceId
-     *
-     * @param int $channelServiceId
-     * @return TSStream
-     * @throws DvbException
-     * @throws ChannelsNotFoundException
+     * @var EPGGrabber
      */
-    public function getTsStream(int $channelServiceId): TSStream {
-        $this->logger->debug("getTsStream() for $channelServiceId");
-        $channelDescriptor = $this->channels->getChannelByServiceId($channelServiceId);
-        $channelFrequency = $channelDescriptor[1]['FREQUENCY'] ?? null;
-        if (empty($channelFrequency)) {
-            throw new DvbException("Unable to find channel frequency for channel $channelServiceId");
-        }
-
-        if (! isset($this->streamsByChannelFrequency[$channelFrequency])) {
-            $channelsFile = $this->channels->getChannelsFilePath();
-            if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed) {
-                throw new MaxProcessReachedException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
-            }
-            $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -P -o -";
-            $this->logger->debug($processLine);
-            $process = new Process($processLine);
-            $tsStream = new TSStream($process, $this->logger, $this->loop);
-            $this->streamsByChannelFrequency[$channelFrequency] = $tsStream;
-            $tsStream->on('exit', function() use ($channelFrequency) {
-                unset($this->streamsByChannelFrequency[$channelFrequency]);
-            });
-        }
-        return $this->streamsByChannelFrequency[$channelFrequency];
-    }
+    public $epgGrabber;
 }

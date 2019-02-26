@@ -7,10 +7,12 @@ if (! is_file($autoloaderFile)) {
     exit(1);
 }
 
+
 // Custom bootstrap
 ini_set('display_errors', 1);
 error_reporting(E_ALL ^ E_NOTICE);
 require_once $autoloaderFile;
+
 
 // Create application context
 $loop = React\EventLoop\Factory::create();
@@ -21,12 +23,12 @@ $dvbContext->rtspPort = 8554;
 $dvbContext->logger = new \PhpBg\MiniHttpd\Logger\Console(\Psr\Log\LogLevel::DEBUG);
 $dvbContext->rootPath = __DIR__;
 $dvbContext->channels = new \PhpBg\WatchTv\Dvb\Channels(__DIR__.'/channels.conf', __DIR__.'/data/dtv-scan-tables');
-
+$dvbContext->tsStreamFactory = new \PhpBg\WatchTv\Dvb\TSStreamFactory($dvbContext->logger, $dvbContext->loop, $dvbContext->channels);
+$dvbContext->epgGrabber = new \PhpBg\WatchTv\Dvb\EPGGrabber($dvbContext->loop, $dvbContext->logger, $dvbContext->channels, $dvbContext->tsStreamFactory);
 
 
 // Setup HTTP Server
 $httpServer = new \PhpBg\WatchTv\Server\HTTPServer($dvbContext);
-
 
 
 // Setup RTSP Server
@@ -38,4 +40,12 @@ if (extension_loaded('xdebug')) {
     $dvbContext->logger->warning('The "xdebug" extension is loaded, this has a major impact on performance.');
 }
 $dvbContext->logger->notice("Now just open your browser and browse http://localhost:{$dvbContext->httpPort} Replace localhost with your server ip address if browsing from local network");
+
+
+// Start EPG Grabber
+$loop->futureTick(function() use ($dvbContext) {
+    $dvbContext->epgGrabber->grab();
+});
+
+
 $loop->run();

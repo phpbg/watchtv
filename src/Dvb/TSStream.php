@@ -84,6 +84,7 @@ class TSStream extends EventEmitter
         $this->process = $process;
         $this->logger = $logger;
         $this->tsClients = [];
+        $this->psiParserRegistrations = [];
 
         $this->process->on('exit', [$this, '_handleExit']);
 
@@ -96,15 +97,9 @@ class TSStream extends EventEmitter
             $this->logger->warning($chunk);
         });
 
-        $this->psiParser = new PsiParser();
-        $this->psiParser->on('error', [$this, '_handleDataStreamErrors']);
-
         $this->tsParser = new TsParser();
         $this->tsParser->on('error', [$this, '_handleDataStreamErrors']);
         $this->tsParser->on('ts', [$this, '_handleTs']);
-        $this->tsParser->on('pes', function ($pid, $data) {
-            $this->psiParser->write($data);
-        });
 
         $this->tsPacketizer = new Packetizer();
         $this->tsPacketizer->on('error', [$this, '_handleDataStreamErrors']);
@@ -145,7 +140,7 @@ class TSStream extends EventEmitter
 
         $this->process->removeAllListeners();
 
-        $this->psiParser->removeAllListeners();
+        $this->unregisterPsiParser();
 
         $this->tsParser->removeAllListeners();
 
@@ -163,6 +158,7 @@ class TSStream extends EventEmitter
             }
         }
         $this->emit('exit');
+        $this->removeAllListeners();
     }
 
     /**
@@ -210,7 +206,11 @@ class TSStream extends EventEmitter
                 $this->tsClients[$pid] = array_values($clients);
             }
         }
-        if (empty($this->tsClients)) {
+        $this->autoKillIfKillable();
+    }
+
+    protected function autoKillIfKillable() {
+        if (empty($this->tsClients) && ! isset($this->psiParser)) {
             $this->logger->debug("Terminate process");
             $this->process->terminate(SIGKILL);
 
@@ -234,5 +234,41 @@ class TSStream extends EventEmitter
             $clients[] = $client;
         }
         return $clients;
+    }
+
+    /**
+     * Register a PSI parser
+     * @param PsiParser $parser
+     */
+    public function registerPsiParser(PsiParser $parser)
+    {
+        if (isset($this->psiParser)) {
+            throw new \RuntimeException("Parser already registered");
+        }
+        $this->psiParser = $parser;
+        $this->psiParser->on('error', [$this, '_handleDataStreamErrors']);
+        $this->tsParser->on('pes', function ($pid, $data) {
+            $this->psiParser->write($pid, $data);
+        });
+
+        foreach ($this->psiParser->getRegisteredPids() as $pid) {
+            $this->tsParser->addPidFilter(new Pid($pid));
+        }
+    }
+
+    /**
+     * Unregister the PSI parser
+     */
+    public function unregisterPsiParser() {
+        if (! isset($this->psiParser)) {
+            return;
+        }
+        foreach ($this->psiParser->getRegisteredPids() as $pid) {
+            $this->tsParser->removePidFilter(new Pid($pid));
+        }
+        $this->psiParser->removeAllListeners();
+        $this->tsParser->removeAllListeners('pes');
+        unset($this->psiParser);
+        $this->autoKillIfKillable();
     }
 }
