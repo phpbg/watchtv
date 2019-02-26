@@ -6,6 +6,7 @@ This is a small server that allows you to watch digital television on your compu
 ## Features
 * scan and configure TV channels
 * browse your TV channels from a web browser
+* browse electronic program guide (EPG)
 * stream tv using RTSP 1.0
 * Kodi support (playing only, no EPG yet, see [below](#kodi))
 * watch simultaneously all channels in the same multiplex
@@ -22,7 +23,6 @@ It is in alpha stage, slow, but should be reliable enough (I've been running a s
 
 ## TODO LIST - Help wanted
 These are ideas, please provide feedback and help:
-* EPG (electronic program guide) (parsing done, needs UI and background scanning)
 * multiple adapter support
 * pause (live recording)
 * scheduled recording
