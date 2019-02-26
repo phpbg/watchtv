@@ -226,12 +226,6 @@ class RTSPServer
                 $session->on('error', function (\Exception $e) {
                     $this->dvbContext->logger->error("Error", ['exception' => $e]);
                 });
-
-            } catch (DvbException $e) {
-                $this->dvbContext->logger->error("", ['exception' => $e]);
-                $response->statusCode = 500;
-                $response->reasonPhrase = 'Internal server error';
-                $response->body = $e->getMessage();
             } catch (\Exception $e) {
                 $this->dvbContext->logger->error("", ['exception' => $e]);
                 $response->statusCode = 500;

@@ -28,6 +28,7 @@ namespace PhpBg\WatchTv\Server;
 
 use PhpBg\MiniHttpd\Model\ApplicationContext;
 use PhpBg\WatchTv\Dvb\Channels;
+use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
 use PhpBg\WatchTv\Dvb\TSStream;
 use React\ChildProcess\Process;
 
@@ -62,6 +63,7 @@ class Context extends ApplicationContext
      * @param int $channelServiceId
      * @return TSStream
      * @throws DvbException
+     * @throws ChannelsNotFoundException
      */
     public function getTsStream(int $channelServiceId): TSStream {
         $this->logger->debug("getTsStream() for $channelServiceId");
@@ -74,7 +76,7 @@ class Context extends ApplicationContext
         if (! isset($this->streamsByChannelFrequency[$channelFrequency])) {
             $channelsFile = $this->channels->getChannelsFilePath();
             if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed) {
-                throw new DvbException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
+                throw new MaxProcessReachedException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
             }
             $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -P -o -";
             $this->logger->debug($processLine);

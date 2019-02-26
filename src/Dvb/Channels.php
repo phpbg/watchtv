@@ -88,7 +88,7 @@ class Channels
      * Return an array containing channel name and channel descriptor
      * @param int $channelId
      * @return array
-     * @throws \Exception
+     * @throws ChannelsNotFoundException
      */
     public function getChannelByServiceId(int $channelId): array
     {
@@ -97,7 +97,7 @@ class Channels
             return $channelId == @$descriptor['SERVICE_ID'];
         });
         if (count($requestedChannels) !== 1) {
-            throw new \Exception("Invalid channel : $channelId");
+            throw new ChannelsNotFoundException("Invalid channel : $channelId");
         }
 
         return [key($requestedChannels), current($requestedChannels)];
@@ -107,7 +107,7 @@ class Channels
      * Return an array of pids (as integers) that compose the video and audio stream
      * @param int $channelId
      * @return array
-     * @throws \Exception
+     * @throws ChannelsNotFoundException
      */
     public function getPidsByServiceId(int $channelId): array
     {
