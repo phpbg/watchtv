@@ -30,7 +30,6 @@ use PhpBg\DvbPsi\Context\EitServiceAggregator;
 use PhpBg\DvbPsi\Context\GlobalContext;
 use PhpBg\DvbPsi\ParserFactory;
 use PhpBg\DvbPsi\Tables\Eit;
-use PhpBg\WatchTv\Server\MaxProcessReachedException;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 
@@ -146,6 +145,9 @@ class EPGGrabber
                 $this->currentTsStream->on('exit', [$this, '_handleTsStreamExit']);
             } catch (MaxProcessReachedException $e) {
                 $this->logger->debug("Cannot start a new process for this multiplex, skipping");
+                continue;
+            } catch (ChannelsNotFoundException $e) {
+                $this->logger->debug("Unexpected error", ['exception' => $e]);
                 continue;
             }
             $psiParser = ParserFactory::create();
