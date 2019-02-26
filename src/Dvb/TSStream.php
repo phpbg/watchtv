@@ -209,6 +209,20 @@ class TSStream extends EventEmitter
         $this->autoKillIfKillable();
     }
 
+    public function terminate() {
+        $this->process->terminate(SIGKILL);
+
+        // Force exit handler because otherwise it will happen in a future tick, and it may be too late
+        // e.g. the client request another channel, but we may think we cannot start a new process
+        $this->_handleExit();
+
+        while ($this->process->isRunning()) {
+            // TODO OMG this is so ugly
+            usleep(1000);
+        }
+        return;
+    }
+
     protected function autoKillIfKillable() {
         if (empty($this->tsClients) && ! isset($this->psiParser)) {
             $this->logger->debug("Terminate process");

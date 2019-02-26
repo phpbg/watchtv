@@ -69,7 +69,7 @@ class TSStreamFactory
 
         if (!isset($this->streamsByChannelFrequency[$channelFrequency])) {
             $channelsFile = $this->channels->getChannelsFilePath();
-            if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed) {
+            if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed && !$this->terminateTsStream()) {
                 throw new MaxProcessReachedException("Can't start a new process: maximum number of running process reached ({$this->maxProcessAllowed})");
             }
             $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelDescriptor[0]}' -P -o -";
@@ -82,5 +82,23 @@ class TSStreamFactory
             });
         }
         return $this->streamsByChannelFrequency[$channelFrequency];
+    }
+
+    /**
+     * Try to terminate a TsStream that has no clients (but may be doing EPG grabbing)
+     * @return bool
+     */
+    public function terminateTsStream()
+    {
+        foreach ($this->streamsByChannelFrequency as $tsStream) {
+            /**
+             * @var TSStream $tsStream
+             */
+            if (empty($tsStream->getClients())) {
+                $tsStream->terminate();
+                return true;
+            }
+        }
+        return false;
     }
 }
