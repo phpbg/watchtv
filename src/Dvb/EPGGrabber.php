@@ -140,27 +140,36 @@ class EPGGrabber
             }
             $this->logger->info("Grabbing EPG for {$channelDescriptor['FREQUENCY']}");
             $this->doneMultiplexes[] = $channelDescriptor['FREQUENCY'];
-            try {
-                $this->currentTsStream = $this->tsStreamFactory->getTsStream($channelDescriptor['SERVICE_ID']);
+
+            $tsStreamPromise = $this->tsStreamFactory->getTsStream($channelDescriptor['SERVICE_ID']);
+            $tsStreamPromise->then(function (TSStream $tsStream) {
+                $this->logger->debug("Received a new TSStream");
+                $this->currentTsStream = $tsStream;
                 $this->currentTsStream->on('exit', [$this, '_handleTsStreamExit']);
-            } catch (MaxProcessReachedException $e) {
-                $this->logger->debug("Cannot start a new process for this multiplex, skipping");
-                continue;
-            } catch (ChannelsNotFoundException $e) {
-                $this->logger->debug("Unexpected error", ['exception' => $e]);
-                continue;
-            }
-            $psiParser = ParserFactory::create();
-            $psiParser->on('eit', function ($eit) {
-                $this->globalContext->addEit($eit);
-                $this->lastEit = $eit;
+
+                $psiParser = ParserFactory::create();
+                $psiParser->on('eit', function ($eit) {
+                    $this->globalContext->addEit($eit);
+                    $this->lastEit = $eit;
+                });
+
+                $this->currentTsStream->registerPsiParser($psiParser);
+
+                $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
             });
+            $tsStreamPromise
+                ->otherwise(function (MaxProcessReachedException $e) {
+                    $this->logger->debug("Cannot start a new process for this multiplex, skipping");
+                    $this->loop->futureTick([$this, '_resumeGrab']);
+                })
+                ->otherwise(function (\Throwable $e) {
+                    $this->logger->error("Unexpected error", ['exception' => $e]);
+                    $this->loop->futureTick([$this, '_resumeGrab']);
+                });
 
-            $this->currentTsStream->registerPsiParser($psiParser);
 
-            $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
 
-            //Break the foreach, it will be resumed later
+            //Explicitly break the foreach, it will be resumed later
             return;
         }
 
@@ -173,7 +182,7 @@ class EPGGrabber
         $this->logger->debug("Checking EPG grabber status");
 
         if (!$this->running) {
-            $this->logger->debug("Not running anymore");
+            $this->logger->debug("EPG grabber not running anymore");
             return;
         }
 
@@ -191,8 +200,8 @@ class EPGGrabber
             $this->currentTsStream->removeListener('exit', [$this, '_handleTsStreamExit']);
             $this->currentTsStream->unregisterPsiParser();
             unset($this->currentTsStream);
-            // Don't grab too fast because the process may have not yet released
-            $this->loop->addTimer(3, [$this, '_resumeGrab']);
+            // Plan immediate resume
+            $this->loop->futureTick([$this, '_resumeGrab']);
             return;
         }
         $this->lastEitAggregatorStat = $stat;
@@ -225,6 +234,6 @@ class EPGGrabber
         $this->logger->debug("Early EPG grabber exit, will restart soon");
         $this->running = false;
         unset($this->currentTsStream);
-        $this->loop->addTimer(5, [$this, 'grab']);
+        $this->loop->addTimer(60, [$this, 'grab']);
     }
 }

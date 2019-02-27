@@ -40,7 +40,6 @@ use React\Stream\WritableStreamInterface;
 /**
  * Class TSStream
  * Write process output (TS) to clients
- * TODO do something with PSI data (EPG)
  *
  * Events
  *   exit: will be emitted when the underlying process is terminated
@@ -78,6 +77,8 @@ class TSStream extends EventEmitter
      * @var LoggerInterface
      */
     private $logger;
+
+    private $exited = false;
 
     public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop)
     {
@@ -128,7 +129,9 @@ class TSStream extends EventEmitter
     }
 
     public function _handleExit() {
-        $this->logger->debug("Process exit : {$this->process->getCommand()}");
+        $this->logger->debug("Process exited : {$this->process->getCommand()}");
+
+        $this->exited = true;
 
         if ($this->process->stdout != null) {
             $this->process->stdout->removeAllListeners();
@@ -140,7 +143,9 @@ class TSStream extends EventEmitter
 
         $this->process->removeAllListeners();
 
-        $this->unregisterPsiParser();
+        if (isset($this->psiParser)) {
+            $this->psiParser->removeAllListeners();
+        }
 
         $this->tsParser->removeAllListeners();
 
@@ -157,6 +162,7 @@ class TSStream extends EventEmitter
                 $endedClients[] = $client;
             }
         }
+        $this->tsClients = [];
         $this->emit('exit');
         $this->removeAllListeners();
     }
@@ -168,6 +174,9 @@ class TSStream extends EventEmitter
      * @param array $pids
      */
     public function addClient(WritableStreamInterface $client, array $pids) {
+        if ($this->exited) {
+            throw new \RuntimeException();
+        }
         if (empty($pids)) {
             throw new \RuntimeException("You must specify at least one PID to listen to");
         }
@@ -192,6 +201,9 @@ class TSStream extends EventEmitter
      * @param WritableStreamInterface $client
      */
     public function removeClient(WritableStreamInterface $client) {
+        if ($this->exited) {
+            return;
+        }
         $this->logger->debug("Remove client");
         foreach ($this->tsClients as $pid => $clients) {
             $pos = array_search($client, $clients);
@@ -210,27 +222,18 @@ class TSStream extends EventEmitter
     }
 
     public function terminate() {
-        $this->process->terminate(SIGKILL);
-
-        // Force exit handler because otherwise it will happen in a future tick, and it may be too late
-        // e.g. the client request another channel, but we may think we cannot start a new process
-        $this->_handleExit();
-
-        while ($this->process->isRunning()) {
-            // TODO OMG this is so ugly
-            usleep(1000);
+        if ($this->exited) {
+            return;
         }
-        return;
+        $this->logger->debug("Terminate process ".$this->process->getCommand());
+        if (! $this->process->terminate(SIGKILL)) {
+            throw new \RuntimeException("Unable to signal process");
+        }
     }
 
     protected function autoKillIfKillable() {
         if (empty($this->tsClients) && ! isset($this->psiParser)) {
-            $this->logger->debug("Terminate process");
-            $this->process->terminate(SIGKILL);
-
-            // Force exit handler because otherwise it will happen in a future tick, and it may be too late
-            // e.g. the client request another channel, but we may think we cannot start a new process
-            $this->_handleExit();
+            $this->terminate();
         }
     }
 

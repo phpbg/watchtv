@@ -28,6 +28,7 @@ namespace PhpBg\WatchTv\Server;
 
 use PhpBg\Rtsp\Message\Enum\RequestMethod;
 use PhpBg\Rtsp\Message\Enum\RtspVersion;
+use PhpBg\Rtsp\Message\MessageFactory;
 use PhpBg\Rtsp\Message\Request;
 use PhpBg\Rtsp\Message\Response;
 use PhpBg\Rtsp\Middleware\AutoContentLength;
@@ -35,6 +36,10 @@ use PhpBg\Rtsp\Middleware\AutoCseq;
 use PhpBg\Rtsp\Middleware\Log;
 use PhpBg\Rtsp\Middleware\MiddlewareStack;
 use PhpBg\Rtsp\Server;
+use PhpBg\WatchTv\Dvb\MaxProcessReachedException;
+use PhpBg\WatchTv\Dvb\TSStream;
+use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 use React\Socket\ConnectionInterface;
 
 class RTSPServer
@@ -67,73 +72,68 @@ class RTSPServer
      * Route all RTSP requests
      * @param Request $request
      * @param ConnectionInterface $connection
-     * @return Response
+     * @return Response|PromiseInterface
      */
-    public function routeHandler(Request $request, ConnectionInterface $connection) {
-        $response = \PhpBg\Rtsp\Message\MessageFactory::response();
+    public function routeHandler(Request $request, ConnectionInterface $connection)
+    {
         switch ($request->method) {
-            case \PhpBg\Rtsp\Message\Enum\RequestMethod::OPTIONS:
-                $this->options($request, $connection, $response);
-                break;
+            case RequestMethod::OPTIONS:
+                return $this->options($request);
 
-            case \PhpBg\Rtsp\Message\Enum\RequestMethod::DESCRIBE:
-                $this->describe($request, $connection, $response);
-                break;
+            case RequestMethod::DESCRIBE:
+                return $this->describe();
 
-            case \PhpBg\Rtsp\Message\Enum\RequestMethod::SETUP:
-                $this->setup($request, $connection, $response);
-                break;
+            case RequestMethod::SETUP:
+                return $this->setup($request, $connection);
 
-            case \PhpBg\Rtsp\Message\Enum\RequestMethod::PLAY:
-                $this->play($request, $connection, $response);
-                break;
+            case RequestMethod::PLAY:
+                return $this->play($request);
 
-            case \PhpBg\Rtsp\Message\Enum\RequestMethod::TEARDOWN:
-                $this->teardown($request, $connection, $response);
-                break;
+            case RequestMethod::TEARDOWN:
+                return $this->teardown($request);
 
             default:
+                $response = MessageFactory::response();
                 $response->statusCode = 500;
                 $response->reasonPhrase = 'not supported';
+                return $response;
         }
-        return $response;
     }
 
     /**
      * Handle OPTIONS method
      *
      * @param Request $request
-     * @param ConnectionInterface $connection
-     * @param Response $response
+     * @return Response $response
      */
-    private function options(Request $request, ConnectionInterface $connection, Response $response)
+    private function options(Request $request): Response
     {
+        $response = MessageFactory::response();
         if ($request->hasHeader('session')) {
             $sessionId = (int)$request->getHeader('session');
             if (!isset($this->sessions[$sessionId])) {
                 $response->statusCode = 454;
                 $response->reasonPhrase = 'Session Not Found';
-                return;
+                return $response;
             }
             $session = $this->sessions[$sessionId];
             $session->keepAlive();
         }
         $response->setHeader('public', 'SETUP, TEARDOWN, PLAY');
+        return $response;
     }
 
     /**
      * Handle DESCRIBE method
-     *
-     * @param Request $request
-     * @param ConnectionInterface $connection
-     * @param Response $response
+     * @return Response
      */
-    private function describe(Request $request, ConnectionInterface $connection, Response $response)
+    private function describe(): Response
     {
+        $response = MessageFactory::response();
         $startTime = time() + 2208988800;
-        //$response->body = "v=0\r\no=- 0 $startTime IN IP4 0.0.0.0\r\ns=bar\r\nt=$startTime 0\r\nm=video 0 RTP/AVP 33\r\n";
         $response->body = "v=0\r\no=- 0 $startTime IN IP4 0.0.0.0\r\ns=bar\r\nt=$startTime 0\r\nm=video 0 udp 33\r\n";
         $response->setHeader('content-type', 'application/sdp');
+        return $response;
     }
 
     /**
@@ -141,51 +141,55 @@ class RTSPServer
      *
      * @param Request $request
      * @param ConnectionInterface $connection
-     * @param Response $response
+     * @return PromiseInterface
      */
-    private function setup(Request $request, ConnectionInterface $connection, Response $response)
+    private function setup(Request $request, ConnectionInterface $connection): PromiseInterface
     {
-        if (!$request->hasHeader('transport')) {
-            $response->statusCode = 400;
-            $response->reasonPhrase = 'Missing transport header';
-        }
-        $transportHeader = $request->getHeader('transport');
-        $transports = explode(',', $transportHeader);
-        $selectedTransport = null;
-        foreach ($transports as $transport) {
-            if ($selectedTransport !== null) {
-                break;
+        return new Promise(function(callable $resolve, callable $reject) use ($request, $connection) {
+            $response = MessageFactory::response();
+            if (!$request->hasHeader('transport')) {
+                $response->statusCode = 400;
+                $response->reasonPhrase = 'Missing transport header';
+                return $resolve($response);
             }
-            $transportParameters = explode(';', $transport);
-            if (!in_array('unicast', $transportParameters)) {
-                continue;
-            }
-            foreach ($transportParameters as $transportParameter) {
-                if (strpos($transportParameter, 'interleaved') === 0) {
-                    // Accept tcp interleaved streaming
-                    $selectedTransport = $transport;
-                    $isTcpInterleaved = true;
+            $transportHeader = $request->getHeader('transport');
+            $transports = explode(',', $transportHeader);
+            $selectedTransport = null;
+            foreach ($transports as $transport) {
+                if ($selectedTransport !== null) {
                     break;
                 }
-                if (strpos($transportParameter, 'client_port') === 0) {
-                    /**
-                     * This code block allows UDP streaming
-                     * Normally this would probably require TS to RTP conversion, plus opening as many sockets as streams
-                     * VLC seems to be happy with this, and does not work with TCP, so let's accept it as a fallback
-                     */
-                    $selectedTransport = $transport;
-                    $portRange = substr($transportParameter, 12);
-                    $ports = explode('-', $portRange);
-                    $rtpPort = $ports[0];
-                    $rtcpPort = $ports[1];
-                    break;
+                $transportParameters = explode(';', $transport);
+                if (!in_array('unicast', $transportParameters)) {
+                    continue;
+                }
+                foreach ($transportParameters as $transportParameter) {
+                    if (strpos($transportParameter, 'interleaved') === 0) {
+                        // Accept tcp interleaved streaming
+                        $selectedTransport = $transport;
+                        $isTcpInterleaved = true;
+                        break;
+                    }
+                    if (strpos($transportParameter, 'client_port') === 0) {
+                        /**
+                         * This code block allows UDP streaming
+                         * Normally this would probably require TS to RTP conversion, plus opening as many sockets as streams
+                         * VLC seems to be happy with this, and does not work with TCP, so let's accept it as a fallback
+                         */
+                        $selectedTransport = $transport;
+                        $portRange = substr($transportParameter, 12);
+                        $ports = explode('-', $portRange);
+                        $rtpPort = $ports[0];
+                        $rtcpPort = $ports[1];
+                        break;
+                    }
                 }
             }
-        }
-        if ($selectedTransport === null) {
-            $response->statusCode = 461;
-            $response->reasonPhrase = 'No compatible transport founds';
-        } else {
+            if ($selectedTransport === null) {
+                $response->statusCode = 461;
+                $response->reasonPhrase = 'No compatible transport founds';
+                return $resolve($response);
+            }
             $response->setHeader('transport', $selectedTransport);
             $sessionId = rand(10000000, 99999999);
             $response->setHeader('session', $sessionId);
@@ -201,13 +205,20 @@ class RTSPServer
             $resourcePath = explode('/', $uri);
             $channelServiceId = array_pop($resourcePath);
             $session->uri = $uri;
-            try {
-                $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
-                $tsstream = $this->dvbContext->tsStreamFactory->getTsStream($channelServiceId);
+            $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
+            $tsStreamPromise = $this->dvbContext->tsStreamFactory->getTsStream($channelServiceId);
+            $tsStreamPromise
+                ->otherwise(function (MaxProcessReachedException $e) use ($resolve) {
+                    $this->dvbContext->logger->info("Cannot start a new process");
+                    $response = MessageFactory::response(500, [], null, "Internal server error");
+                    return $resolve($response);
+                })
+                ->otherwise(function (\Throwable $e) use ($reject) {
+                    return $reject($e);
+                });
+            return $tsStreamPromise->then(function(TSStream $tsstream) use ($session, $pids, $connection, $resolve, $response) {
                 $tsstream->addClient($session, $pids);
-
                 $this->sessions[$session->id] = $session;
-
                 $session->on('close', function ($serverTeardown) use ($session, $connection) {
                     $origin = $serverTeardown ? 'server' : 'client';
                     $this->dvbContext->logger->info("Session {$session->id} teardown originated by {$origin}");
@@ -226,52 +237,61 @@ class RTSPServer
                 $session->on('error', function (\Exception $e) {
                     $this->dvbContext->logger->error("Error", ['exception' => $e]);
                 });
-            } catch (\Exception $e) {
-                $this->dvbContext->logger->error("", ['exception' => $e]);
-                $response->statusCode = 500;
-                $response->reasonPhrase = 'Internal server error';
-            }
-        }
+
+                return $resolve($response);
+            });
+        });
     }
 
     /**
      * Handle PLAY method
      *
      * @param Request $request
-     * @param ConnectionInterface $connection
-     * @param Response $response
      */
-    private function play(Request $request, ConnectionInterface $connection, Response $response)
+    private function play(Request $request): Response
     {
+        $response = MessageFactory::response();
         if (!$request->hasHeader('session')) {
             $response->statusCode = 454;
             $response->reasonPhrase = 'Missing session header';
-            return;
+            return $response;
         }
         $sessionId = (int)$request->getHeader('session');
         if (!isset($this->sessions[$sessionId])) {
             $response->statusCode = 454;
             $response->reasonPhrase = 'Session Not Found';
-            return;
+            return $response;
         }
         $session = $this->sessions[$sessionId];
         $session->play();
+        return $response;
     }
 
-    private function teardown(Request $request, ConnectionInterface $connection, Response $response)
+    /**
+     * Handle TEARDOWN method
+     *
+     * @param Request $request
+     * @return Response
+     */
+    private function teardown(Request $request): Response
     {
+        $response = MessageFactory::response();
         if (!$request->hasHeader('session')) {
             $response->statusCode = 454;
             $response->reasonPhrase = 'Missing session header';
-            return;
+            return $response;
         }
         $sessionId = (int)$request->getHeader('session');
         if (!isset($this->sessions[$sessionId])) {
             $response->statusCode = 454;
             $response->reasonPhrase = 'Session Not Found';
-            return;
+            return $response;
         }
+        /**
+         * @var Session $session
+         */
         $session = $this->sessions[$sessionId];
         $session->teardown();
+        return $response;
     }
 }

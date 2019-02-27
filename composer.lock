@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0cb48d1984f8abcad89372ee2d2bb4e",
+    "content-hash": "6f740638fdffb0f2583c35d6d220a41e",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -243,16 +243,16 @@
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.3.0",
+            "version": "0.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "49836a9b084c21ea11d576274432f4f59dadcd8e"
+                "reference": "91d7ad32151c920ab96ea37e144bdd20d21f06fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/49836a9b084c21ea11d576274432f4f59dadcd8e",
-                "reference": "49836a9b084c21ea11d576274432f4f59dadcd8e",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/91d7ad32151c920ab96ea37e144bdd20d21f06fd",
+                "reference": "91d7ad32151c920ab96ea37e144bdd20d21f06fd",
                 "shasum": ""
             },
             "require": {
@@ -297,7 +297,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-01-25T20:21:27+00:00"
+            "time": "2019-02-27T19:36:13+00:00"
         },
         {
             "name": "phpbg/mpegts",
@@ -348,16 +348,16 @@
         },
         {
             "name": "phpbg/rtsp",
-            "version": "0.3.0",
+            "version": "0.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/rtsp.git",
-                "reference": "a1e397691d6f5b4082059eb0d9b8a3ec0000fafe"
+                "reference": "21de50ad8596cfbbbaaaae0210b62005ce3cbf9c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/rtsp/zipball/a1e397691d6f5b4082059eb0d9b8a3ec0000fafe",
-                "reference": "a1e397691d6f5b4082059eb0d9b8a3ec0000fafe",
+                "url": "https://api.github.com/repos/phpbg/rtsp/zipball/21de50ad8596cfbbbaaaae0210b62005ce3cbf9c",
+                "reference": "21de50ad8596cfbbbaaaae0210b62005ce3cbf9c",
                 "shasum": ""
             },
             "require": {
@@ -394,7 +394,7 @@
                 "rtsp",
                 "server"
             ],
-            "time": "2019-02-25T10:37:08+00:00"
+            "time": "2019-02-27T13:52:24+00:00"
         },
         {
             "name": "psr/container",
