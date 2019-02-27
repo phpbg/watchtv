@@ -49,28 +49,22 @@ class Epg extends AbstractController
 
     public function __invoke(ServerRequestInterface $request)
     {
-        $globalContext = $this->epgGrabber->getGlobalContext();
-        $events = $globalContext->getAllEvents();
         $runningEvents = [];
-        foreach ($events as $networkId => $transportStreams) {
-            foreach ($transportStreams as $transportStream => $services) {
-                foreach ($services as $service => $eitAggregator) {
-                    /**
-                     * @var EitServiceAggregator $eitAggregator
-                     */
-                    $runningEvent = $eitAggregator->getRunningEvent();
-                    if (! isset($runningEvent)) {
-                        continue;
-                    }
-                    try {
-                        $channel = $this->channels->getChannelByServiceId($service);
-                        $name = $channel[0];
-                    } catch (ChannelsNotFoundException $e) {
-                        $name = "Unknown channel: $service";
-                    }
-                    $runningEvents[$name] = $runningEvent->getShortEventText();
-                }
+        foreach ($this->epgGrabber->getEitAggregators() as $eitAggregator) {
+            /**
+             * @var EitServiceAggregator $eitAggregator
+             */
+            $runningEvent = $eitAggregator->getRunningEvent();
+            if (!isset($runningEvent)) {
+                continue;
             }
+            try {
+                $channel = $this->channels->getChannelByServiceId($eitAggregator->serviceId);
+                $name = $channel[0];
+            } catch (ChannelsNotFoundException $e) {
+                $name = "Unknown channel: $eitAggregator->serviceId";
+            }
+            $runningEvents[$name] = $runningEvent->getShortEventText();
         }
         return ['runningEvents' => $runningEvents];
     }

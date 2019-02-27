@@ -78,6 +78,8 @@ class EPGGrabber
 
     const CHECK_INTERVAL = 3;
 
+    const RETRY_ON_FAILURE_INTERVAL = 60;
+
     public function __construct(LoopInterface $loop, LoggerInterface $logger, Channels $channels, TSStreamFactory $tsStreamFactory)
     {
         $this->loop = $loop;
@@ -103,11 +105,22 @@ class EPGGrabber
     }
 
     /**
-     * @return GlobalContext
+     * Return an array of all EitServiceAggregator
+     * There is one EitServiceAggregator per Network/TS stream/Service
+     *
+     * @return EitServiceAggregator[]
      */
-    public function getGlobalContext(): GlobalContext
-    {
-        return $this->globalContext;
+    public function getEitAggregators() {
+        $events = $this->globalContext->getAllEvents();
+        $aggregators = [];
+        foreach ($events as $transportStreams) {
+            foreach ($transportStreams as $services) {
+                foreach ($services as $eitAggregator) {
+                    $aggregators[] = $eitAggregator;
+                }
+            }
+        }
+        return $aggregators;
     }
 
     public function _resumeGrab()
@@ -234,6 +247,6 @@ class EPGGrabber
         $this->logger->debug("Early EPG grabber exit, will restart soon");
         $this->running = false;
         unset($this->currentTsStream);
-        $this->loop->addTimer(60, [$this, 'grab']);
+        $this->loop->addTimer(static::RETRY_ON_FAILURE_INTERVAL, [$this, 'grab']);
     }
 }
