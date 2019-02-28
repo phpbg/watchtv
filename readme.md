@@ -6,9 +6,8 @@ This is a small server that allows you to watch digital television on your compu
 ## Features
 * scan and configure TV channels
 * browse your TV channels from a web browser
-* browse electronic program guide (EPG)
 * stream tv using RTSP 1.0
-* Kodi support (playing only, no EPG yet, see [below](#kodi))
+* Kodi support, see [below](#kodi))
 * watch simultaneously all channels in the same multiplex
 
 ## Is is compatible in my country?
@@ -23,7 +22,7 @@ It is in alpha stage, slow, but should be reliable enough (I've been running a s
 
 ## TODO LIST - Help wanted
 These are ideas, please provide feedback and help:
-* EPG for Kodi simple iptv client (easy pick)
+* browse electronic program guide (EPG) (easy, just a web page to do, will be next release feature)
 * multiple adapter support
 * pause (live recording)
 * scheduled recording
@@ -46,7 +45,7 @@ You can run the server and the client on the same device if you want.
   * [VLC](https://www.videolan.org/vlc): expect troubles with VLC
     * TCP does not work with VLC (it is supported but I didn't manage to make it work)
     * UDP is the default and works, but glitches are expected, probably because TS stream should be converted to RTP? (if you know well RTSP and RTP please feedback wanted)
-  * <a name="kodi"></a>[Kodi](https://kodi.tv/) using [IPTV Simple Client](https://kodi.wiki/view/Add-on:IPTV_Simple_Client) You can download m3u8 on main channels page
+  * <a name="kodi"></a>[Kodi](https://kodi.tv/) using [IPTV Simple Client](https://kodi.wiki/view/Add-on:IPTV_Simple_Client) You can copy m3u and epg URLs from main channels page (links at bottom). I highly recommend you disable caching channels in IPTV plugin configuration **and** in kodi PVR settings 
 * Android
   * [MPV-android](https://play.google.com/store/apps/details?id=is.xyz.mpv) (recommended)
   * [VLC for Android](https://play.google.com/store/apps/details?id=org.videolan.vlc) (same limitations as VLC for desktop)
