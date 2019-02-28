@@ -7,7 +7,7 @@ This is a small server that allows you to watch digital television on your compu
 * scan and configure TV channels
 * browse your TV channels from a web browser
 * stream tv using RTSP 1.0
-* Kodi support, see [below](#kodi))
+* Kodi support, see [below](#kodi)
 * watch simultaneously all channels in the same multiplex
 
 ## Is is compatible in my country?
