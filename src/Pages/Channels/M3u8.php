@@ -48,7 +48,7 @@ class M3u8 extends AbstractChannelsController
         $content = "#EXTM3U\r\n";
         $host = $this->getHost($request);
         foreach ($this->channels->getChannelsByName() as $channelName => $channelDescriptor) {
-            $content .= "#EXTINF:-1,{$channelName}\r\n";
+            $content .= "#EXTINF:-1 tvg-id=\"{$channelDescriptor['SERVICE_ID']}\",{$channelName}\r\n";
             $content .= "rtsp://{$host}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}\r\n";
         }
 

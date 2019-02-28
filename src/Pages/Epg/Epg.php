@@ -26,11 +26,12 @@
 
 namespace PhpBg\WatchTv\Pages\Epg;
 
+use GuzzleHttp\Psr7\Response;
 use PhpBg\DvbPsi\Context\EitServiceAggregator;
+use PhpBg\DvbPsi\Descriptors\ShortEvent;
 use PhpBg\WatchTv\Dvb\Channels;
 use PhpBg\MiniHttpd\Controller\AbstractController;
 use PhpBg\MiniHttpd\Middleware\ContextTrait;
-use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
 use PhpBg\WatchTv\Dvb\EPGGrabber;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -49,23 +50,56 @@ class Epg extends AbstractController
 
     public function __invoke(ServerRequestInterface $request)
     {
-        $runningEvents = [];
+        $content = '<?xml version="1.0" encoding="utf-8" ?>';
+        $content .= '<tv>';
+
+        foreach ($this->channels->getChannelsByName() as $name => $descriptor) {
+            $content .= '
+              <channel id="' . $descriptor['SERVICE_ID'] . '">
+                <display-name>' . htmlspecialchars($name) . '</display-name>
+              </channel>
+            ';
+        }
+
         foreach ($this->epgGrabber->getEitAggregators() as $eitAggregator) {
             /**
              * @var EitServiceAggregator $eitAggregator
              */
-            $runningEvent = $eitAggregator->getRunningEvent();
-            if (!isset($runningEvent)) {
-                continue;
+            $eitAggregatorEvents = $eitAggregator->getScheduledEvents();
+            foreach ($eitAggregatorEvents as $eitEvent) {
+                /**
+                 * @var \PhpBg\DvbPsi\Tables\EitEvent $eitEvent
+                 */
+                $start = date('YmdHis O', $eitEvent->startTimestamp);
+                $stop = date('YmdHis O', $eitEvent->startTimestamp + $eitEvent->duration);
+
+                $shortEvent = null;
+                foreach ($eitEvent->descriptors as $descriptor) {
+                    if ($descriptor instanceof ShortEvent) {
+                        $shortEvent = $descriptor;
+                        break;
+                    }
+                }
+
+                $content .= '<programme start="' . $start . '" stop="' . $stop . '" channel="' . $eitAggregator->serviceId . '">';
+                $content .= "\n";
+                if (isset($shortEvent)) {
+                    $content .= '<title>' . htmlspecialchars($shortEvent->eventName) . '</title>';
+                    $content .= "\n";
+                    $content .= '<desc>' . htmlspecialchars($shortEvent->text) . '</desc>';
+                    $content .= "\n";
+                }
+                //$content .= '      <category>Category</category>';
+                $content .= '</programme>';
+                $content .= "\n";
             }
-            try {
-                $channel = $this->channels->getChannelByServiceId($eitAggregator->serviceId);
-                $name = $channel[0];
-            } catch (ChannelsNotFoundException $e) {
-                $name = "Unknown channel: $eitAggregator->serviceId";
-            }
-            $runningEvents[$name] = $runningEvent->getShortEventText();
         }
-        return ['runningEvents' => $runningEvents];
+
+        $content .= '</tv>';
+
+        return new Response(200, [
+            'Content-type' => 'application/xml; charset="UTF-8"',
+            'Content-Disposition' => 'inline; filename=epg.xml'
+        ], $content);
     }
 }

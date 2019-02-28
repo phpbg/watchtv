@@ -197,12 +197,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/dvbpsi.git",
-                "reference": "0524ec0143cc60e47d9fec0c223b10ad8b55d4d0"
+                "reference": "0e059bf681796812e11879912595aab62262db5b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/0524ec0143cc60e47d9fec0c223b10ad8b55d4d0",
-                "reference": "0524ec0143cc60e47d9fec0c223b10ad8b55d4d0",
+                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/0e059bf681796812e11879912595aab62262db5b",
+                "reference": "0e059bf681796812e11879912595aab62262db5b",
                 "shasum": ""
             },
             "require": {
@@ -239,7 +239,7 @@
                 "mpegts",
                 "psi"
             ],
-            "time": "2019-02-28T09:55:32+00:00"
+            "time": "2019-02-28T13:01:36+00:00"
         },
         {
             "name": "phpbg/mini-httpd",
