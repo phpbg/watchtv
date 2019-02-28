@@ -23,6 +23,7 @@ It is in alpha stage, slow, but should be reliable enough (I've been running a s
 
 ## TODO LIST - Help wanted
 These are ideas, please provide feedback and help:
+* EPG for Kodi simple iptv client (easy pick)
 * multiple adapter support
 * pause (live recording)
 * scheduled recording

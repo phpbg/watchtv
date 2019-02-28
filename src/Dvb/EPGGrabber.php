@@ -80,6 +80,10 @@ class EPGGrabber
 
     const RETRY_ON_FAILURE_INTERVAL = 60;
 
+    const DEFAULT_GRAB_INTERVAL = 3600;
+
+    const GRAB_GUARD_INTERVAL = 30;
+
     public function __construct(LoopInterface $loop, LoggerInterface $logger, Channels $channels, TSStreamFactory $tsStreamFactory)
     {
         $this->loop = $loop;
@@ -110,7 +114,8 @@ class EPGGrabber
      *
      * @return EitServiceAggregator[]
      */
-    public function getEitAggregators() {
+    public function getEitAggregators()
+    {
         $events = $this->globalContext->getAllEvents();
         $aggregators = [];
         foreach ($events as $transportStreams) {
@@ -140,6 +145,7 @@ class EPGGrabber
             $channels = $this->channels->getChannelsByName();
         } catch (ChannelsNotFoundException $e) {
             $this->logger->notice("No channels configured");
+            $this->_handleTsStreamExit();
             return;
         }
 
@@ -181,13 +187,17 @@ class EPGGrabber
                 });
 
 
-
             //Explicitly break the foreach, it will be resumed later
             return;
         }
 
         $this->running = false;
         $this->logger->notice("EPG grabbing finished");
+
+        $nextUpdateTimestamp = $this->getNextUpdateTimestamp();
+        $interval = max(static::GRAB_GUARD_INTERVAL, $nextUpdateTimestamp - time());
+        $this->logger->notice("Next grab in {$interval}s");
+        $this->loop->addTimer($interval, [$this, 'grab']);
     }
 
     public function _checkGrabber()
@@ -244,9 +254,39 @@ class EPGGrabber
 
     public function _handleTsStreamExit()
     {
-        $this->logger->debug("Early EPG grabber exit, will restart soon");
+        $this->logger->debug("Early EPG grabber exit, will restart in " . static::RETRY_ON_FAILURE_INTERVAL . "s");
         $this->running = false;
         unset($this->currentTsStream);
         $this->loop->addTimer(static::RETRY_ON_FAILURE_INTERVAL, [$this, 'grab']);
+    }
+
+    /**
+     * Return the next timestamp we will re grab channels, based on next event ending
+     *
+     * @return int
+     */
+    public function getNextUpdateTimestamp(): int
+    {
+        $nextGrabTimestamp = time() + static::DEFAULT_GRAB_INTERVAL;
+        foreach ($this->getEitAggregators() as $eitAggregator) {
+            /**
+             * @var EitServiceAggregator $eitAggregator
+             */
+            $runningEvent = $eitAggregator->getRunningEvent();
+            if (!isset($runningEvent)) {
+                continue;
+            }
+            if (empty($runningEvent->startTimestamp) || empty($runningEvent->duration)) {
+                continue;
+            }
+            if (time() - 300 > $runningEvent->startTimestamp + $runningEvent->duration) {
+                $this->logger->info("Ignoring following event that seem to be terminated since a long time");
+                $this->logger->info($runningEvent->getShortEventText());
+                $this->logger->info("End date: " . date('Y-m-d H:i:s', $runningEvent->startTimestamp + $runningEvent->duration));
+                continue;
+            }
+            $nextGrabTimestamp = min($nextGrabTimestamp, $runningEvent->startTimestamp + $runningEvent->duration);
+        }
+        return $nextGrabTimestamp;
     }
 }
