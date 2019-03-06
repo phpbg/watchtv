@@ -65,7 +65,7 @@ class Epg extends AbstractController
             /**
              * @var EitServiceAggregator $eitAggregator
              */
-            $eitAggregatorEvents = $eitAggregator->getScheduledEvents();
+            $eitAggregatorEvents = $eitAggregator->getAllEvents();
             foreach ($eitAggregatorEvents as $eitEvent) {
                 /**
                  * @var \PhpBg\DvbPsi\Tables\EitEvent $eitEvent
@@ -89,6 +89,7 @@ class Epg extends AbstractController
                     $content .= '<desc>' . htmlspecialchars($shortEvent->text) . '</desc>';
                     $content .= "\n";
                 }
+                //TODO category
                 //$content .= '      <category>Category</category>';
                 $content .= '</programme>';
                 $content .= "\n";
