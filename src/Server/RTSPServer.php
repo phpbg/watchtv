@@ -229,8 +229,8 @@ class RTSPServer
                 ->otherwise(function (\Throwable $e) use ($reject) {
                     return $reject($e);
                 });
-            return $tsStreamPromise->then(function(TSStream $tsstream) use ($session, $pids, $connection, $resolve, $response) {
-                $tsstream->addClient($session, $pids);
+            return $tsStreamPromise->then(function(TSStream $tsstream) use ($session, $pids, $channelServiceId, $connection, $resolve, $response) {
+                $tsstream->addClient($session, $pids, $channelServiceId);
                 $this->sessions[$session->id] = $session;
                 $session->on('close', function ($serverTeardown) use ($session, $connection) {
                     $origin = $serverTeardown ? 'server' : 'client';

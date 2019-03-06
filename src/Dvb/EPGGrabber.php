@@ -28,7 +28,6 @@ namespace PhpBg\WatchTv\Dvb;
 
 use PhpBg\DvbPsi\Context\EitServiceAggregator;
 use PhpBg\DvbPsi\Context\GlobalContext;
-use PhpBg\DvbPsi\ParserFactory;
 use PhpBg\DvbPsi\Tables\Eit;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
@@ -75,6 +74,8 @@ class EPGGrabber
     private $currentTsStream;
 
     private $running;
+
+    private $eitParser;
 
     const CHECK_INTERVAL = 3;
 
@@ -165,14 +166,15 @@ class EPGGrabber
                 $this->logger->debug("Received a new TSStream");
                 $this->currentTsStream = $tsStream;
                 $this->currentTsStream->on('exit', [$this, '_handleTsStreamExit']);
+                $this->currentTsStream->setEpgGrabbing();
 
-                $psiParser = ParserFactory::create();
+                $psiParser = $tsStream->getPsiParser();
+                $this->eitParser = new \PhpBg\DvbPsi\TableParsers\Eit();
+                $psiParser->registerTableParser($this->eitParser);
                 $psiParser->on('eit', function ($eit) {
                     $this->globalContext->addEit($eit);
                     $this->lastEit = $eit;
                 });
-
-                $this->currentTsStream->registerPsiParser($psiParser);
 
                 $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
             });
@@ -221,7 +223,9 @@ class EPGGrabber
         if ($stat === $this->lastEitAggregatorStat) {
             $this->logger->debug("Moving to next multiplex");
             $this->currentTsStream->removeListener('exit', [$this, '_handleTsStreamExit']);
-            $this->currentTsStream->unregisterPsiParser();
+            $this->currentTsStream->getPsiParser()->removeAllListeners('eit');
+            $this->currentTsStream->getPsiParser()->unregisterTableParser($this->eitParser);
+            $this->currentTsStream->releaseEpgGrabbing();
             unset($this->currentTsStream);
             // Plan immediate resume
             $this->loop->futureTick([$this, '_resumeGrab']);

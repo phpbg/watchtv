@@ -28,7 +28,10 @@ namespace PhpBg\WatchTv\Dvb;
 
 use Evenement\EventEmitter;
 use Evenement\EventEmitterTrait;
+use PhpBg\DvbPsi\Context\StreamContext;
 use PhpBg\DvbPsi\Parser as PsiParser;
+use PhpBg\DvbPsi\TableParsers\Pat;
+use PhpBg\DvbPsi\TableParsers\Pmt;
 use PhpBg\MpegTs\Packetizer;
 use PhpBg\MpegTs\Parser as TsParser;
 use PhpBg\MpegTs\Pid;
@@ -80,6 +83,20 @@ class TSStream extends EventEmitter
 
     private $exited = false;
 
+    /**
+     * @var StreamContext
+     */
+    private $streamContext;
+
+    /**
+     * @var Pmt
+     */
+    private $pmtParser;
+
+    private $clients = [];
+
+    private $epgGrabbing = false;
+
     public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop)
     {
         $this->process = $process;
@@ -106,6 +123,45 @@ class TSStream extends EventEmitter
         $this->tsPacketizer->on('error', [$this, '_handleDataStreamErrors']);
         $this->tsPacketizer->on('data', [$this->tsParser, 'write']);
 
+        $this->psiParser = new PsiParser();
+        $this->psiParser->registerTableParser(new Pat());
+        $this->psiParser->on('error', [$this, '_handleDataStreamErrors']);
+        $this->tsParser->on('pes', function ($pid, $data) {
+            $this->psiParser->write($pid, $data);
+        });
+        foreach ($this->psiParser->getRegisteredPids() as $pid) {
+            $this->tsParser->addPidFilter(new Pid($pid));
+        }
+        $this->psiParser->on('parserAdd', function ($parser, $pidsAdded) {
+            foreach ($pidsAdded as $pid) {
+                $this->tsParser->addPidFilter(new Pid($pid));
+            }
+        });
+        $this->psiParser->on('parserRemove', function ($parser, $pidsRemoved) {
+            foreach ($pidsRemoved as $pid) {
+                $this->tsParser->removePidFilter(new Pid($pid));
+            }
+        });
+
+        $this->streamContext = new StreamContext();
+        $this->psiParser->on('pat', function ($pat) {
+            $this->streamContext->addPat($pat);
+        });
+        $this->psiParser->on('pmt', function ($pmt) {
+            $this->streamContext->addPmt($pmt);
+        });
+
+        // Register PMT on PAT updates
+        $this->streamContext->on('pat-update', function ($newPat) {
+            if (isset($this->pmtParser)) {
+                $this->psiParser->unregisterTableParser($this->pmtParser);
+            }
+            $this->pmtParser = new \PhpBg\DvbPsi\TableParsers\Pmt();
+            $newPids = array_values($newPat->programs);
+            $this->pmtParser->setPids($newPids);
+            $this->psiParser->registerTableParser($this->pmtParser);
+        });
+
         // We don't listen to stdout end or close event because we listen on exit on process and that should be enough
         $this->process->stdout->on('error', [$this, '_handleDataStreamErrors']);
         $this->process->stdout->on('data', [$this->tsPacketizer, 'write']);
@@ -116,8 +172,9 @@ class TSStream extends EventEmitter
         $this->logger->debug("Parser or stream error", ['exception' => $exception]);
     }
 
-    public function _handleTs($pid, $data) {
-        if (! isset($this->tsClients[$pid])) {
+    public function _handleTs($pid, $data)
+    {
+        if (!isset($this->tsClients[$pid])) {
             return;
         }
         foreach ($this->tsClients[$pid] as $client) {
@@ -128,7 +185,8 @@ class TSStream extends EventEmitter
         }
     }
 
-    public function _handleExit() {
+    public function _handleExit()
+    {
         $this->logger->debug("Process exited : {$this->process->getCommand()}");
 
         $this->exited = true;
@@ -143,9 +201,7 @@ class TSStream extends EventEmitter
 
         $this->process->removeAllListeners();
 
-        if (isset($this->psiParser)) {
-            $this->psiParser->removeAllListeners();
-        }
+        $this->psiParser->removeAllListeners();
 
         $this->tsParser->removeAllListeners();
 
@@ -163,6 +219,11 @@ class TSStream extends EventEmitter
             }
         }
         $this->tsClients = [];
+
+        $this->streamContext->removeAllListeners();
+
+        $this->clients = [];
+
         $this->emit('exit');
         $this->removeAllListeners();
     }
@@ -173,24 +234,53 @@ class TSStream extends EventEmitter
      * @param WritableStreamInterface $client
      * @param array $pids
      */
-    public function addClient(WritableStreamInterface $client, array $pids) {
+    public function addClient(WritableStreamInterface $client, array $pids, $serviceId)
+    {
         if ($this->exited) {
             throw new \RuntimeException();
         }
         if (empty($pids)) {
             throw new \RuntimeException("You must specify at least one PID to listen to");
         }
+        $this->clients[] = $client;
+
+        // Add PAT and PMT to pids
+        if (!in_array(0, $pids)) {
+            $pids[] = 0;
+        }
+        if (isset($this->streamContext->pat)) {
+            if (isset($this->streamContext->pat->programs[$serviceId])) {
+                if (!in_array($this->streamContext->pat->programs[$serviceId], $pids)) {
+                    $pids[] = $this->streamContext->pat->programs[$serviceId];
+                }
+            }
+        }
+        if (!isset($this->streamContext->pat)) {
+            $this->streamContext->once('pat-update', function () use ($client, $serviceId) {
+                if (!in_array($client, $this->clients)) {
+                    return;
+                }
+                if (isset($this->streamContext->pat->programs[$serviceId])) {
+                    $pid = $this->streamContext->pat->programs[$serviceId];
+                    if (!isset($this->tsClients[$pid])) {
+                        $this->tsClients[$pid] = [];
+                        $this->tsParser->addPidPassthrough(new Pid($pid));
+                    }
+                    $this->tsClients[$pid][] = $client;
+                }
+            });
+        }
         foreach ($pids as $pid) {
-            if (! isset($this->tsClients[$pid])) {
+            if (!isset($this->tsClients[$pid])) {
                 $this->tsClients[$pid] = [];
                 $this->tsParser->addPidPassthrough(new Pid($pid));
             }
             $this->tsClients[$pid][] = $client;
         }
-        $client->on('error', function($e) {
+        $client->on('error', function ($e) {
             $this->logger->warning("Client error", ['exception' => $e]);
         });
-        $client->on('close', function() use ($client) {
+        $client->on('close', function () use ($client) {
             $this->removeClient($client);
         });
     }
@@ -200,11 +290,16 @@ class TSStream extends EventEmitter
      *
      * @param WritableStreamInterface $client
      */
-    public function removeClient(WritableStreamInterface $client) {
+    public function removeClient(WritableStreamInterface $client)
+    {
         if ($this->exited) {
             return;
         }
         $this->logger->debug("Remove client");
+        $pos = array_search($client, $this->clients);
+        if ($pos !== false) {
+            unset($this->clients[$pos]);
+        }
         foreach ($this->tsClients as $pid => $clients) {
             $pos = array_search($client, $clients);
             if ($pos === false) {
@@ -221,18 +316,20 @@ class TSStream extends EventEmitter
         $this->autoKillIfKillable();
     }
 
-    public function terminate() {
+    public function terminate()
+    {
         if ($this->exited) {
             return;
         }
-        $this->logger->debug("Terminate process ".$this->process->getCommand());
-        if (! $this->process->terminate(SIGKILL)) {
+        $this->logger->debug("Terminate process " . $this->process->getCommand());
+        if (!$this->process->terminate(SIGKILL)) {
             throw new \RuntimeException("Unable to signal process");
         }
     }
 
-    protected function autoKillIfKillable() {
-        if (empty($this->tsClients) && ! isset($this->psiParser)) {
+    protected function autoKillIfKillable()
+    {
+        if (empty($this->tsClients) && !$this->epgGrabbing) {
             $this->terminate();
         }
     }
@@ -242,7 +339,8 @@ class TSStream extends EventEmitter
      *
      * @return array
      */
-    public function getClients(): array {
+    public function getClients(): array
+    {
         $clients = [];
         foreach ($this->tsClients as $client) {
             if (in_array($client, $clients)) {
@@ -254,38 +352,27 @@ class TSStream extends EventEmitter
     }
 
     /**
-     * Register a PSI parser
-     * @param PsiParser $parser
+     * @return PsiParser
      */
-    public function registerPsiParser(PsiParser $parser)
+    public function getPsiParser(): PsiParser
     {
-        if (isset($this->psiParser)) {
-            throw new \RuntimeException("Parser already registered");
-        }
-        $this->psiParser = $parser;
-        $this->psiParser->on('error', [$this, '_handleDataStreamErrors']);
-        $this->tsParser->on('pes', function ($pid, $data) {
-            $this->psiParser->write($pid, $data);
-        });
-
-        foreach ($this->psiParser->getRegisteredPids() as $pid) {
-            $this->tsParser->addPidFilter(new Pid($pid));
-        }
+        return $this->psiParser;
     }
 
     /**
-     * Unregister the PSI parser
+     * Maintain stream for EPG grabbing, event if there are no clients
      */
-    public function unregisterPsiParser() {
-        if (! isset($this->psiParser)) {
-            return;
-        }
-        foreach ($this->psiParser->getRegisteredPids() as $pid) {
-            $this->tsParser->removePidFilter(new Pid($pid));
-        }
-        $this->psiParser->removeAllListeners();
-        $this->tsParser->removeAllListeners('pes');
-        unset($this->psiParser);
+    public function setEpgGrabbing()
+    {
+        $this->epgGrabbing = true;
+    }
+
+    /**
+     * @see TSStream::setEpgGrabbing()
+     */
+    public function releaseEpgGrabbing()
+    {
+        $this->epgGrabbing = false;
         $this->autoKillIfKillable();
     }
 }
