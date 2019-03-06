@@ -173,9 +173,22 @@ class RTSPServer
                     if (strpos($transportParameter, 'client_port') === 0) {
                         /**
                          * This code block allows UDP streaming
-                         * Normally this would probably require TS to RTP conversion, plus opening as many sockets as streams
+                         * UDP does not provide high quality, probably because it would require TS to RTP conversion, plus opening as many sockets as streams
                          * VLC seems to be happy with this, and does not work with TCP, so let's accept it as a fallback
                          */
+
+                        if ($request->hasHeader('user-agent')) {
+                            $ua = $request->getHeader('user-agent');
+                            // Refuse UDP for some user agents because they are TCP capable and TCP works much better
+                            // E.g. Kodi's user agent looks like: Lavf57.83.100
+                            $matches = [];
+                            if (preg_match('/Lavf([0-9]+)\.[0-9]+\.[0-9]+/i', $ua, $matches)) {
+                                if (! empty($matches[1]) && $matches[1]>=57) {
+                                    break;
+                                }
+                            }
+                        }
+
                         $selectedTransport = $transport;
                         $portRange = substr($transportParameter, 12);
                         $ports = explode('-', $portRange);
