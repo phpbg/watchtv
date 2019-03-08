@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f740638fdffb0f2583c35d6d220a41e",
+    "content-hash": "2935d437a6fe76b7c37146e32ee28988",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -197,12 +197,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/dvbpsi.git",
-                "reference": "3986502ad70e093ba41c1d82f39ce18544bd2b80"
+                "reference": "822ea774bb7562c068620b9544f612f5a4a69773"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/3986502ad70e093ba41c1d82f39ce18544bd2b80",
-                "reference": "3986502ad70e093ba41c1d82f39ce18544bd2b80",
+                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/822ea774bb7562c068620b9544f612f5a4a69773",
+                "reference": "822ea774bb7562c068620b9544f612f5a4a69773",
                 "shasum": ""
             },
             "require": {
@@ -210,7 +210,7 @@
                 "ext-calendar": "*",
                 "myclabs/php-enum": "^1.5",
                 "php": ">=7.0",
-                "phpbg/mpegts": "^0.1.0"
+                "phpbg/mpegts": "^0.2.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^6.5"
@@ -239,7 +239,7 @@
                 "mpegts",
                 "psi"
             ],
-            "time": "2019-03-06T22:05:48+00:00"
+            "time": "2019-03-08T21:58:14+00:00"
         },
         {
             "name": "phpbg/mini-httpd",
@@ -301,16 +301,16 @@
         },
         {
             "name": "phpbg/mpegts",
-            "version": "v0.1.0",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mpegts.git",
-                "reference": "5967197d5320e65f3480519f5fe42fecb45a4254"
+                "reference": "990fc1e843fb0d0b6db9f9631d8a85f0ea1c43b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mpegts/zipball/5967197d5320e65f3480519f5fe42fecb45a4254",
-                "reference": "5967197d5320e65f3480519f5fe42fecb45a4254",
+                "url": "https://api.github.com/repos/phpbg/mpegts/zipball/990fc1e843fb0d0b6db9f9631d8a85f0ea1c43b4",
+                "reference": "990fc1e843fb0d0b6db9f9631d8a85f0ea1c43b4",
                 "shasum": ""
             },
             "require": {
@@ -344,7 +344,7 @@
                 "mpeg",
                 "mpegts"
             ],
-            "time": "2018-09-16T19:11:38+00:00"
+            "time": "2019-03-08T20:11:15+00:00"
         },
         {
             "name": "phpbg/rtsp",
