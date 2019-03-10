@@ -77,6 +77,8 @@ class EPGGrabber
 
     private $eitParser;
 
+    private $noEitCounter;
+
     const CHECK_INTERVAL = 3;
 
     const RETRY_ON_FAILURE_INTERVAL = 60;
@@ -176,6 +178,7 @@ class EPGGrabber
                     $this->lastEit = $eit;
                 });
 
+                $this->noEitCounter = 0;
                 $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
             });
             $tsStreamPromise
@@ -213,6 +216,13 @@ class EPGGrabber
 
         if (!isset($this->lastEit)) {
             $this->logger->debug("No EIT yet");
+            $this->noEitCounter++;
+            if ($this->noEitCounter > 3) {
+                $this->logger->debug("It seems we will never receive EIT for this multiplex. Abort");
+                $this->stopGrabbing();
+                $this->loop->addTimer(static::RETRY_ON_FAILURE_INTERVAL, [$this, 'grab']);
+                return;
+            }
             $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
             return;
         }
@@ -222,17 +232,22 @@ class EPGGrabber
         $this->logger->debug("Current aggregation status: {$roundedStat}%");
         if ($stat === $this->lastEitAggregatorStat) {
             $this->logger->debug("Moving to next multiplex");
-            $this->currentTsStream->removeListener('exit', [$this, '_handleTsStreamExit']);
-            $this->currentTsStream->getPsiParser()->removeAllListeners('eit');
-            $this->currentTsStream->getPsiParser()->unregisterTableParser($this->eitParser);
-            $this->currentTsStream->releaseEpgGrabbing();
-            unset($this->currentTsStream);
+            $this->stopGrabbing();
             // Plan immediate resume
             $this->loop->futureTick([$this, '_resumeGrab']);
             return;
         }
         $this->lastEitAggregatorStat = $stat;
         $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
+    }
+
+    private function stopGrabbing()
+    {
+        $this->currentTsStream->removeListener('exit', [$this, '_handleTsStreamExit']);
+        $this->currentTsStream->getPsiParser()->removeAllListeners('eit');
+        $this->currentTsStream->getPsiParser()->unregisterTableParser($this->eitParser);
+        $this->currentTsStream->releaseEpgGrabbing();
+        unset($this->currentTsStream);
     }
 
     private function computeGlobalStat(): float
