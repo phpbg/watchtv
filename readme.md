@@ -9,6 +9,7 @@ This is a small server that allows you to watch digital television on your compu
 * stream tv using RTSP 1.0
 * Kodi support, see [below](#kodi)
 * watch simultaneously all channels in the same multiplex
+* logical channel numbering (please note that this is not standard and may depend on your country)
 
 ## Is is compatible in my country?
 Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestrial_television_standards.svg) to know your broadcasting technology.
@@ -32,7 +33,6 @@ These are ideas, please provide feedback and help:
   * https://en.wikipedia.org/wiki/HTTP_Live_Streaming
   * https://tools.ietf.org/html/rfc8216
 * packaging for common linux distributions
-* sort channels as we are used to (I didn't find the way to do it with DVB metadata)
 
 ## Requirements
 You can run the server and the client on the same device if you want.
