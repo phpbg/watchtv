@@ -220,6 +220,7 @@ class EPGGrabber
             if ($this->noEitCounter > 3) {
                 $this->logger->debug("It seems we will never receive EIT for this multiplex. Abort");
                 $this->stopGrabbing();
+                $this->running = false;
                 $this->loop->addTimer(static::RETRY_ON_FAILURE_INTERVAL, [$this, 'grab']);
                 return;
             }
