@@ -37,6 +37,9 @@ class Channels extends AbstractChannelsController
 
     /**
      * Main homepage listing channels
+     * @param ServerRequestInterface $request
+     * @return array
+     * @throws RedirectException
      */
     public function __invoke(ServerRequestInterface $request)
     {
@@ -48,10 +51,13 @@ class Channels extends AbstractChannelsController
         }
 
         $context = $this->getContext($request);
+        $context->renderOptions['bottomScripts'] = [
+            "/vue-2.5.22.min.js",
+            "/jquery-3.3.1.min.js"
+        ];
         $context->renderOptions['headCss'] = ['/w3css-4.12.css'];
 
         return [
-            'channelsByName' => $this->channels->getChannelsByName(),
             'publicHostname' => $this->getHost($request),
             'rtspPort' => $this->rtspPort
         ];

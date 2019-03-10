@@ -26,6 +26,7 @@
 
 namespace PhpBg\WatchTv\Server;
 
+use PhpBg\DvbPsi\Context\GlobalContext;
 use PhpBg\MiniHttpd\Model\ApplicationContext;
 use PhpBg\WatchTv\Dvb\Channels;
 use PhpBg\WatchTv\Dvb\EPGGrabber;
@@ -64,4 +65,9 @@ class Context extends ApplicationContext
      * @var EPGGrabber
      */
     public $epgGrabber;
+
+    /**
+     * @var GlobalContext
+     */
+    public $dvbGlobalContext;
 }

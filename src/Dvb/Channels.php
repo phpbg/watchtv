@@ -79,6 +79,10 @@ class Channels
             if ($this->channelsByName === false) {
                 throw new ChannelsNotFoundException("{$this->filepath} is not a valid channel file");
             }
+            foreach ($this->channelsByName as $name => &$descriptor) {
+                $descriptor['NAME'] = $name;
+            }
+            unset($descriptor);
         }
 
         return $this->channelsByName;

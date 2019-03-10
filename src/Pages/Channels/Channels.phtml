@@ -1,14 +1,15 @@
+<script>
+    var rtspRoot = "rtsp://<?=$this->publicHostname?>:<?=$this->rtspPort?>";
+</script>
 <div class="w3-container">
     <h1 class="w3-center">Watch TV</h1>
-    <div class='w3-row'>
-        <?php
-        foreach ($this->channelsByName as $channelName => $channelDescriptor) {
-            if (empty($channelDescriptor['SERVICE_ID']) || empty($channelDescriptor['FREQUENCY'])) {
-                continue;
-            }
-            echo "<div class='w3-col s12 m4 l3'><a class='w3-border w3-center' href='rtsp://{$this->publicHostname}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}'>{$channelName}</a></div>";
-        }
-        ?>
+    <div class="w3-row" v-if="orderedChannels">
+        <div v-for="channel in orderedChannels" class='w3-col s12 m4 l3'>
+            <a class="w3-border w3-center" :href='rtspRoot+"/"+channel["SERVICE_ID"]'>
+                <span v-if="logicalChannelsNumbers && logicalChannelsNumbers[channel['SERVICE_ID']]">{{logicalChannelsNumbers[channel['SERVICE_ID']]}}. </span>
+                <span>{{channel["NAME"]}}</span>
+            </a>
+        </div>
     </div>
 </div>
 

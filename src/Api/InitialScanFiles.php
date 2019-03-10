@@ -47,6 +47,11 @@ class InitialScanFiles extends AbstractController
         $this->channels = $channels;
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return array
+     * @throws \PhpBg\MiniHttpd\Model\ValidateException
+     */
     public function __invoke(ServerRequestInterface $request)
     {
         $network = $this->getFromQuery($request, 'network', null, new InArray(['haystack' => [

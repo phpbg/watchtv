@@ -87,14 +87,14 @@ class EPGGrabber
 
     const GRAB_GUARD_INTERVAL = 30;
 
-    public function __construct(LoopInterface $loop, LoggerInterface $logger, Channels $channels, TSStreamFactory $tsStreamFactory)
+    public function __construct(LoopInterface $loop, LoggerInterface $logger, Channels $channels, TSStreamFactory $tsStreamFactory, GlobalContext $globalContext)
     {
         $this->loop = $loop;
         $this->logger = $logger;
         $this->channels = $channels;
         $this->tsStreamFactory = $tsStreamFactory;
         $this->running = false;
-        $this->globalContext = new GlobalContext();
+        $this->globalContext = $globalContext;
     }
 
     /**
@@ -182,7 +182,7 @@ class EPGGrabber
                 $this->loop->addTimer(static::CHECK_INTERVAL, [$this, '_checkGrabber']);
             });
             $tsStreamPromise
-                ->otherwise(function (MaxProcessReachedException $e) {
+                ->otherwise(function (/** @noinspection PhpUnusedParameterInspection */ MaxProcessReachedException $e) {
                     $this->logger->debug("Cannot start a new process for this multiplex, skipping");
                     $this->loop->futureTick([$this, '_resumeGrab']);
                 })

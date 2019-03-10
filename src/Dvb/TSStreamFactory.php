@@ -26,6 +26,7 @@
 
 namespace PhpBg\WatchTv\Dvb;
 
+use PhpBg\DvbPsi\Context\GlobalContext;
 use Psr\Log\LoggerInterface;
 use React\ChildProcess\Process;
 use React\EventLoop\LoopInterface;
@@ -42,14 +43,16 @@ class TSStreamFactory
     private $channels;
     private $streamsByChannelFrequency;
     private $maxProcessAllowed;
+    private $dvbGlobalContext;
 
-    public function __construct(LoggerInterface $logger, LoopInterface $loop, Channels $channels)
+    public function __construct(LoggerInterface $logger, LoopInterface $loop, Channels $channels, GlobalContext $globalContext)
     {
         $this->logger = $logger;
         $this->loop = $loop;
         $this->channels = $channels;
         $this->streamsByChannelFrequency = [];
         $this->maxProcessAllowed = 1;
+        $this->dvbGlobalContext = $globalContext;
     }
 
     /**
@@ -92,12 +95,19 @@ class TSStreamFactory
         });
     }
 
+    /**
+     * @param string $channelsFile
+     * @param string $channelName
+     * @param $channelFrequency
+     * @return TSStream
+     * @throws \PhpBg\DvbPsi\Exception
+     */
     protected function doCreateTsStream(string $channelsFile, string $channelName, $channelFrequency)
     {
         $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelName}' -P -o -";
         $this->logger->debug("Starting $processLine");
         $process = new Process($processLine);
-        $tsStream = new TSStream($process, $this->logger, $this->loop);
+        $tsStream = new TSStream($process, $this->logger, $this->loop, $this->dvbGlobalContext);
         $this->streamsByChannelFrequency[$channelFrequency] = $tsStream;
         $tsStream->on('exit', function () use ($channelFrequency) {
             unset($this->streamsByChannelFrequency[$channelFrequency]);

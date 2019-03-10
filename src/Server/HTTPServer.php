@@ -40,6 +40,11 @@ use React\Socket\Server;
 
 class HTTPServer
 {
+    /**
+     * HTTPServer constructor.
+     * @param Context $dvbContext
+     * @throws \PhpBg\MiniHttpd\MimeDb\MimeDbException
+     */
     public function __construct(Context $dvbContext)
     {
         $defaultRenderer = new Phtml($dvbContext->rootPath . '/src/Pages/layout.phtml');
@@ -50,7 +55,9 @@ class HTTPServer
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
-            '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels), 'reload'], new Json())
+            '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),
+            '/api/channels/logical-numbers' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'logicalNumbers'], new Json()),
+            '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'reload'], new Json())
         ];
         $dvbContext->routes = $routes;
         $dvbContext->publicPath = $dvbContext->rootPath . '/public';

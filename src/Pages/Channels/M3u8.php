@@ -35,6 +35,10 @@ class M3u8 extends AbstractChannelsController
 {
     /**
      * Download all channels as a m3u8 playlist
+     * @param ServerRequestInterface $request
+     * @return Response
+     * @throws ChannelsNotFoundException
+     * @throws RedirectException
      */
     public function __invoke(ServerRequestInterface $request)
     {

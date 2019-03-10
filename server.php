@@ -23,8 +23,9 @@ $dvbContext->rtspPort = 8554;
 $dvbContext->logger = new \PhpBg\MiniHttpd\Logger\Console(\Psr\Log\LogLevel::DEBUG);
 $dvbContext->rootPath = __DIR__;
 $dvbContext->channels = new \PhpBg\WatchTv\Dvb\Channels(__DIR__.'/channels.conf', __DIR__.'/data/dtv-scan-tables');
-$dvbContext->tsStreamFactory = new \PhpBg\WatchTv\Dvb\TSStreamFactory($dvbContext->logger, $dvbContext->loop, $dvbContext->channels);
-$dvbContext->epgGrabber = new \PhpBg\WatchTv\Dvb\EPGGrabber($dvbContext->loop, $dvbContext->logger, $dvbContext->channels, $dvbContext->tsStreamFactory);
+$dvbContext->dvbGlobalContext = new \PhpBg\DvbPsi\Context\GlobalContext();
+$dvbContext->tsStreamFactory = new \PhpBg\WatchTv\Dvb\TSStreamFactory($dvbContext->logger, $dvbContext->loop, $dvbContext->channels, $dvbContext->dvbGlobalContext);
+$dvbContext->epgGrabber = new \PhpBg\WatchTv\Dvb\EPGGrabber($dvbContext->loop, $dvbContext->logger, $dvbContext->channels, $dvbContext->tsStreamFactory, $dvbContext->dvbGlobalContext);
 
 
 // Setup HTTP Server

@@ -48,6 +48,11 @@ class Epg extends AbstractController
         $this->channels = $channels;
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return Response
+     * @throws \PhpBg\WatchTv\Dvb\ChannelsNotFoundException
+     */
     public function __invoke(ServerRequestInterface $request)
     {
         $content = '<?xml version="1.0" encoding="utf-8" ?>';

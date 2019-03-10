@@ -221,7 +221,7 @@ class RTSPServer
             $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
             $tsStreamPromise = $this->dvbContext->tsStreamFactory->getTsStream($channelServiceId);
             $tsStreamPromise
-                ->otherwise(function (MaxProcessReachedException $e) use ($resolve) {
+                ->otherwise(function (/** @noinspection PhpUnusedParameterInspection */ MaxProcessReachedException $e) use ($resolve) {
                     $this->dvbContext->logger->info("Cannot start a new process");
                     $response = MessageFactory::response(500, [], null, "Internal server error");
                     return $resolve($response);
@@ -260,6 +260,7 @@ class RTSPServer
      * Handle PLAY method
      *
      * @param Request $request
+     * @return Response
      */
     private function play(Request $request): Response
     {

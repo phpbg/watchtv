@@ -28,8 +28,10 @@ namespace PhpBg\WatchTv\Dvb;
 
 use Evenement\EventEmitter;
 use Evenement\EventEmitterTrait;
+use PhpBg\DvbPsi\Context\GlobalContext;
 use PhpBg\DvbPsi\Context\StreamContext;
 use PhpBg\DvbPsi\Parser as PsiParser;
+use PhpBg\DvbPsi\TableParsers\Nit;
 use PhpBg\DvbPsi\TableParsers\Pat;
 use PhpBg\DvbPsi\TableParsers\Pmt;
 use PhpBg\MpegTs\Packetizer;
@@ -89,6 +91,11 @@ class TSStream extends EventEmitter
     private $streamContext;
 
     /**
+     * @var GlobalContext
+     */
+    private $dvbGlobalContext;
+
+    /**
      * @var Pmt
      */
     private $pmtParser;
@@ -97,12 +104,20 @@ class TSStream extends EventEmitter
 
     private $epgGrabbing = false;
 
-    public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop)
+    /**
+     * TSStream constructor.
+     * @param Process $process
+     * @param LoggerInterface $logger
+     * @param LoopInterface $loop
+     * @param GlobalContext $globalContext
+     * @throws \PhpBg\DvbPsi\Exception
+     */
+    public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop, GlobalContext $globalContext)
     {
         $this->process = $process;
         $this->logger = $logger;
+        $this->dvbGlobalContext = $globalContext;
         $this->tsClients = [];
-        $this->psiParserRegistrations = [];
 
         $this->process->on('exit', [$this, '_handleExit']);
 
@@ -125,6 +140,7 @@ class TSStream extends EventEmitter
 
         $this->psiParser = new PsiParser();
         $this->psiParser->registerTableParser(new Pat());
+        $this->psiParser->registerTableParser(new Nit());
         $this->psiParser->on('error', [$this, '_handleDataStreamErrors']);
         $this->tsParser->on('pes', function ($pid, $data) {
             $this->psiParser->write($pid, $data);
@@ -132,12 +148,12 @@ class TSStream extends EventEmitter
         foreach ($this->psiParser->getRegisteredPids() as $pid) {
             $this->tsParser->addPidFilter(new Pid($pid));
         }
-        $this->psiParser->on('parserAdd', function ($parser, $pidsAdded) {
+        $this->psiParser->on('parserAdd', function (/** @noinspection PhpUnusedParameterInspection */ $parser, $pidsAdded) {
             foreach ($pidsAdded as $pid) {
                 $this->tsParser->addPidFilter(new Pid($pid));
             }
         });
-        $this->psiParser->on('parserRemove', function ($parser, $pidsRemoved) {
+        $this->psiParser->on('parserRemove', function (/** @noinspection PhpUnusedParameterInspection */ $parser, $pidsRemoved) {
             foreach ($pidsRemoved as $pid) {
                 $this->tsParser->removePidFilter(new Pid($pid));
             }
@@ -150,13 +166,16 @@ class TSStream extends EventEmitter
         $this->psiParser->on('pmt', function ($pmt) {
             $this->streamContext->addPmt($pmt);
         });
+        $this->psiParser->on('nit', function ($nit) {
+            $this->dvbGlobalContext->addNit($nit);
+        });
 
         // Register PMT on PAT updates
         $this->streamContext->on('pat-update', function ($newPat) {
             if (isset($this->pmtParser)) {
                 $this->psiParser->unregisterTableParser($this->pmtParser);
             }
-            $this->pmtParser = new \PhpBg\DvbPsi\TableParsers\Pmt();
+            $this->pmtParser = new Pmt();
             $newPids = array_values($newPat->programs);
             $this->pmtParser->setPids($newPids);
             $this->psiParser->registerTableParser($this->pmtParser);
@@ -233,6 +252,7 @@ class TSStream extends EventEmitter
      *
      * @param WritableStreamInterface $client
      * @param array $pids
+     * @param int $serviceId
      */
     public function addClient(WritableStreamInterface $client, array $pids, $serviceId)
     {
