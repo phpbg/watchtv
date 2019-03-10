@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2935d437a6fe76b7c37146e32ee28988",
+    "content-hash": "a967c8db58ce5b3006521bd17ef09df6",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -193,7 +193,7 @@
         },
         {
             "name": "phpbg/dvbpsi",
-            "version": "dev-master",
+            "version": "0.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/dvbpsi.git",
@@ -2982,9 +2982,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "phpbg/dvbpsi": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
