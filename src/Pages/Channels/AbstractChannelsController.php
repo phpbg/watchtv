@@ -26,6 +26,7 @@
 
 namespace PhpBg\WatchTv\Pages\Channels;
 
+use PhpBg\DvbPsi\Context\GlobalContext;
 use PhpBg\MiniHttpd\Controller\AbstractController;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -33,11 +34,13 @@ abstract class AbstractChannelsController extends AbstractController
 {
     protected $rtspPort;
     protected $channels;
+    protected $dvbGlobalContext;
 
-    public function __construct(int $rtspPort, \PhpBg\WatchTv\Dvb\Channels $channels)
+    public function __construct(int $rtspPort, \PhpBg\WatchTv\Dvb\Channels $channels, GlobalContext $dvbGlobalContext)
     {
         $this->rtspPort = $rtspPort;
         $this->channels = $channels;
+        $this->dvbGlobalContext = $dvbGlobalContext;
     }
 
     /**

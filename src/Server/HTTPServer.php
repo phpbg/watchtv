@@ -49,8 +49,8 @@ class HTTPServer
     {
         $defaultRenderer = new Phtml($dvbContext->rootPath . '/src/Pages/layout.phtml');
         $routes = [
-            '/' => new Route(new Channels($dvbContext->rtspPort, $dvbContext->channels), $defaultRenderer),
-            '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels), $defaultRenderer),
+            '/' => new Route(new Channels($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext), $defaultRenderer),
+            '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels), $defaultRenderer),
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop), new Json()),

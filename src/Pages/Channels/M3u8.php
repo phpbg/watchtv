@@ -27,12 +27,16 @@
 namespace PhpBg\WatchTv\Pages\Channels;
 
 use GuzzleHttp\Psr7\Response;
+use PhpBg\DvbPsi\Exception;
 use PhpBg\MiniHttpd\HttpException\RedirectException;
 use PhpBg\WatchTv\Dvb\ChannelsNotFoundException;
+use PhpBg\WatchTv\Dvb\LogicalChannelsNumbers;
 use Psr\Http\Message\ServerRequestInterface;
 
 class M3u8 extends AbstractChannelsController
 {
+    use LogicalChannelsNumbers;
+
     /**
      * Download all channels as a m3u8 playlist
      * @param ServerRequestInterface $request
@@ -51,8 +55,24 @@ class M3u8 extends AbstractChannelsController
 
         $content = "#EXTM3U\r\n";
         $host = $this->getHost($request);
-        foreach ($this->channels->getChannelsByName() as $channelName => $channelDescriptor) {
-            $content .= "#EXTINF:-1 tvg-id=\"{$channelDescriptor['SERVICE_ID']}\",{$channelName}\r\n";
+
+        $channels = $this->channels->getChannelsByName();
+        try {
+            $lcn = $this->getLogicalChannelsNumbers($this->dvbGlobalContext);
+            if (! empty($lcn)) {
+                usort($channels, function($a, $b) use ($lcn) {
+                    // Channels without logical number should go to the end
+                    $aNumber = $lcn[$a["SERVICE_ID"]] ?? 1000;
+                    $bNumber = $lcn[$b["SERVICE_ID"]] ?? 1000;
+                    return $aNumber <=> $bNumber;
+                });
+            }
+        } catch (Exception $e) {
+            // Unable to retrieve LCN, who cares ???
+        }
+
+        foreach ($channels as $channelDescriptor) {
+            $content .= "#EXTINF:-1 tvg-id=\"{$channelDescriptor['SERVICE_ID']}\",{$channelDescriptor['NAME']}\r\n";
             $content .= "rtsp://{$host}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}\r\n";
         }
 

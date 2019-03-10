@@ -27,12 +27,14 @@
 namespace PhpBg\WatchTv\Api;
 
 use PhpBg\DvbPsi\Context\GlobalContext;
-use PhpBg\DvbPsi\Descriptors\PrivateDescriptors\EACEM\LogicalChannel;
+use PhpBg\DvbPsi\Exception;
 use PhpBg\MiniHttpd\HttpException\HttpException;
-use PhpBg\MiniHttpd\HttpException\NotFoundException;
+use PhpBg\WatchTv\Dvb\LogicalChannelsNumbers;
 
 class Channels
 {
+    use LogicalChannelsNumbers;
+
     private $channels;
     private $dvbGlobalContext;
 
@@ -66,38 +68,15 @@ class Channels
 
     /**
      * Return logical channel numbers (if any)
-     *
      * @return array|null
      * @throws HttpException
      */
     public function logicalNumbers()
     {
-        $nitAggregators = $this->dvbGlobalContext->getNitAggregators();
-        if (empty($nitAggregators)) {
-            throw new NotFoundException("No NIT collected");
+        try {
+            return $this->getLogicalChannelsNumbers($this->dvbGlobalContext);
+        } catch (Exception $e) {
+            throw new HttpException($e->getMessage(), 501);
         }
-        if (count($nitAggregators) > 1) {
-            throw new HttpException("Only one DVB network is supported", 501);
-        }
-        $nitAggregator = current($nitAggregators);
-        if (!$nitAggregator->isComplete()) {
-            return null;
-        }
-        $logicalChannelNumbers = [];
-        foreach ($nitAggregator->segments as $nit) {
-            foreach ($nit->transportStreams as $ts) {
-                $lcnDescriptor = null;
-                foreach ($ts->descriptors as $descriptor) {
-                    if ($descriptor instanceof LogicalChannel) {
-                        $lcnDescriptor = $descriptor;
-                        break;
-                    }
-                }
-                if (isset($lcnDescriptor)) {
-                    $logicalChannelNumbers += $lcnDescriptor->services;
-                }
-            }
-        }
-        return $logicalChannelNumbers;
     }
 }
