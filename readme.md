@@ -55,12 +55,14 @@ You can run the server and the client on the same device if you want.
 * Linux
 * PHP 7+
 * A TV adapter
+* ethernet network. Wifi works but please avoid wifi: **wifi is not that reliable**. I do not recommend you use wifi for the server side.
+
+This is compatible with raspberry pi, but note that there is a bug that WILL crash your raspberry sooner or later. Please wait for bug resolution before using this on your raspberries: [bug report](https://bugs.launchpad.net/raspbian/+bug/1819650)
 
 A raspberry zero-w is enough, although I recommend you something more reliable:
-* **wifi is not that reliable**. I do not recommend you use wifi for the server side.
+* it has wifi only (you may try USB attached ethernet adapter)
 * some TV dongles require a lot of current, and some power supplies don't handle this corectly
-
-Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberry 3B have wifi troubles - raspberry 3B+ seems not to be affected).
+* Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberry 3B have wifi troubles - raspberry 3B+ seems not to be affected). Discussion [here](https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=188891&sid=afdef6524bddc08ec983fe57bb3a797c) and [here](https://www.raspberrypi.org/forums/viewtopic.php?f=36&t=234058)
 
 ## Installation
 
