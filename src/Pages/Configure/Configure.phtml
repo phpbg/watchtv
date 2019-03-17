@@ -1,35 +1,37 @@
-<h1 class="w3-container">Configure</h1>
+<div id="app">
+    <h1 class="w3-container">Configure</h1>
 
-<section class="w3-container">
-    <h2>Requirements</h2>
-    <ul>
-        <li v-for="check in checks">
-            <code class="w3-codespan">{{check.cmd}}</code> :
-            <span v-show="check.status==0">OK</span>
-            <span v-show="check.status!=0"><b>KO</b></span>
-            <span v-show="check.status!=0 && check.resolution[check.status]">{{check.resolution[check.status]}}</span>
-            <span v-show="check.status!=0 && ! check.resolution[check.status]">Try running the command in a shell to get detailed error</span>
-        </li>
-    </ul>
+    <section class="w3-container">
+        <h2>Requirements</h2>
+        <ul>
+            <li v-for="check in checks">
+                <code class="w3-codespan">{{check.cmd}}</code> :
+                <span v-show="check.status==0">OK</span>
+                <span v-show="check.status!=0"><b>KO</b></span>
+                <span v-show="check.status!=0 && check.resolution[check.status]">{{check.resolution[check.status]}}</span>
+                <span v-show="check.status!=0 && ! check.resolution[check.status]">Try running the command in a shell to get detailed error</span>
+            </li>
+        </ul>
 
-    <p v-show="showScan">All requirements met, proceed to scan</p>
-    <p v-show="! showScan">Fix unmet requirements</p>
+        <p v-show="showScan">All requirements met, proceed to scan</p>
+        <p v-show="! showScan">Fix unmet requirements</p>
 
-</section>
+    </section>
 
 
-<section v-show="showScan" class="w3-container">
-    <h2>Scan</h2>
-    <select v-model="initialScanNetwork">
-        <option value="" disabled selected>Select your network</option>
-        <option v-for="network in networks" :value="network">{{network}}</option>
-    </select>
-    <select v-model="initialScanFile" v-show="initialScanNetwork.length>0">
-        <option value="" disabled selected>Select your country</option>
-        <option v-for="file in initialScanFiles" :value="file.value">{{file.text}}</option>
-    </select>
-    <p v-show="initialScanFile.length>0">Run following command and grab a coffee: <code class="w3-codespan"><?= $this->scanCmd ?> {{initialScanFile}}</code></p>
-    <p v-show="initialScanFile.length>0">
-        When scan is over click <button @click="refreshChannels">Refresh channels</button>
-    </p>
-</section>
+    <section v-show="showScan" class="w3-container">
+        <h2>Scan</h2>
+        <select v-model="initialScanNetwork">
+            <option value="" disabled selected>Select your network</option>
+            <option v-for="network in networks" :value="network">{{network}}</option>
+        </select>
+        <select v-model="initialScanFile" v-show="initialScanNetwork.length>0">
+            <option value="" disabled selected>Select your country</option>
+            <option v-for="file in initialScanFiles" :value="file.value">{{file.text}}</option>
+        </select>
+        <p v-show="initialScanFile.length>0">Run following command and grab a coffee: <code class="w3-codespan"><?= $this->scanCmd ?> {{initialScanFile}}</code></p>
+        <p v-show="initialScanFile.length>0">
+            When scan is over click <button @click="refreshChannels">Refresh channels</button>
+        </p>
+    </section>
+</div>

@@ -5,7 +5,8 @@ new Vue({
         logicalChannelsNumbers: null,
         runningEpg: null,
         now: Math.floor(Date.now() / 1000),
-        incompleteEpgCount: 0
+        incompleteEpgCount: 0,
+        rtspRoot: rtspRoot
     },
     computed: {
         orderedChannels: function () {

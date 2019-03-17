@@ -1,23 +1,27 @@
 <script>
     var rtspRoot = "rtsp://<?=$this->publicHostname?>:<?=$this->rtspPort?>";
 </script>
-<div class="w3-container">
-    <h1 class="w3-center">Watch TV</h1>
-    <div class="w3-row" v-if="orderedChannels">
-        <div v-for="channel in orderedChannels" class='w3-col s12 m4 l3'>
-            <a class="w3-border w3-center" :href='rtspRoot+"/"+channel["SERVICE_ID"]'>
-                <h2>{{channel["NAME"]}}</h2>
-                <div v-if="epgByService && epgByService[channel['SERVICE_ID']]">
-                    <p :title="epgByService[channel['SERVICE_ID']].shortText">{{epgByService[channel['SERVICE_ID']].name}}</p>
-                    <progress max="100" :value="getEitPercent(epgByService[channel['SERVICE_ID']])"></progress>
-                </div>
-            </a>
+
+<div id="app">
+    <div class="w3-container">
+        <h1 class="w3-center">Watch TV</h1>
+        <div class="w3-row" v-if="orderedChannels">
+            <div v-for="channel in orderedChannels" class='w3-col s12 m4 l3'>
+                <a class="w3-border w3-center" :href='rtspRoot+"/"+channel["SERVICE_ID"]'>
+                    <h2>{{channel["NAME"]}}</h2>
+                    <div v-if="epgByService && epgByService[channel['SERVICE_ID']]">
+                        <p :title="epgByService[channel['SERVICE_ID']].shortText">
+                            {{epgByService[channel['SERVICE_ID']].name}}</p>
+                        <progress max="100" :value="getEitPercent(epgByService[channel['SERVICE_ID']])"></progress>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>
-</div>
 
-<p class="w3-container">
-    <a href="/channels/m3u8">Download M3U</a>
-    <a href="/epg">Download EPG</a>
-    <a href="/configure">Go to configuration</a>
-</p>
+    <p class="w3-container">
+        <a href="/channels/m3u8">Download M3U</a>
+        <a href="/epg">Download EPG</a>
+        <a href="/configure">Go to configuration</a>
+    </p>
+</div>
