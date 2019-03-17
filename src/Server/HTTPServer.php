@@ -57,7 +57,8 @@ class HTTPServer
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
             '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),
             '/api/channels/logical-numbers' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'logicalNumbers'], new Json()),
-            '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'reload'], new Json())
+            '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'reload'], new Json()),
+            '/api/epg/get-running' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getRunning'], new Json())
         ];
         $dvbContext->routes = $routes;
         $dvbContext->publicPath = $dvbContext->rootPath . '/public';

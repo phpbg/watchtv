@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "a967c8db58ce5b3006521bd17ef09df6",
+    "content-hash": "fb1eb341bd3e91d2da7ae06209c010b6",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -243,19 +243,20 @@
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.3.1",
+            "version": "0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "91d7ad32151c920ab96ea37e144bdd20d21f06fd"
+                "reference": "4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/91d7ad32151c920ab96ea37e144bdd20d21f06fd",
-                "reference": "91d7ad32151c920ab96ea37e144bdd20d21f06fd",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22",
+                "reference": "4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22",
                 "shasum": ""
             },
             "require": {
+                "ext-json": "*",
                 "ext-zlib": "*",
                 "guzzlehttp/psr7": "^1.4",
                 "php": ">=7.0",
@@ -297,7 +298,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-02-27T19:36:13+00:00"
+            "time": "2019-03-17T19:16:57+00:00"
         },
         {
             "name": "phpbg/mpegts",
