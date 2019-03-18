@@ -121,9 +121,12 @@ new Vue({
             return '';
         },
         getEitPercent: function (eit) {
-            var percent = Math.floor(100 * (this.now - eit.startTimestamp) / (this.now - eit.startTimestamp + eit.duration));
+            var percent = Math.floor(100 * (this.now - eit.startTimestamp) / eit.duration);
             if (percent >= 100) {
-                this.getEpg();
+                var that = this;
+                setTimeout(function () {
+                    that.getEpg();
+                }, 1000);
             }
             return percent;
         }
