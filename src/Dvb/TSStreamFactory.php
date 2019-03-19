@@ -68,7 +68,7 @@ class TSStreamFactory
         $this->logger->debug("getTsStream() for $channelServiceId");
         return new Promise(function (callable $resolver) use ($channelServiceId) {
             $channelDescriptor = $this->channels->getChannelByServiceId($channelServiceId);
-            $channelFrequency = $channelDescriptor[1]['FREQUENCY'] ?? null;
+            $channelFrequency = $channelDescriptor['FREQUENCY'] ?? null;
             if (empty($channelFrequency)) {
                 throw new ChannelsNotFoundException("Unable to find channel frequency for channel $channelServiceId");
             }
@@ -86,10 +86,10 @@ class TSStreamFactory
                         });
                     });
                     return $exitPromise->then(function () use ($resolver, $channelsFile, $channelDescriptor, $channelFrequency) {
-                        return $resolver($this->doCreateTsStream($channelsFile, $channelDescriptor[0], $channelFrequency));
+                        return $resolver($this->doCreateTsStream($channelsFile, $channelDescriptor['NAME'], $channelFrequency));
                     });
                 }
-                $this->doCreateTsStream($channelsFile, $channelDescriptor[0], $channelFrequency);
+                $this->doCreateTsStream($channelsFile, $channelDescriptor['NAME'], $channelFrequency);
             }
             return $resolver($this->streamsByChannelFrequency[$channelFrequency]);
         });
@@ -107,7 +107,7 @@ class TSStreamFactory
         $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelName}' -P -o -";
         $this->logger->debug("Starting $processLine");
         $process = new Process($processLine);
-        $tsStream = new TSStream($process, $this->logger, $this->loop, $this->dvbGlobalContext);
+        $tsStream = new TSStream($process, $this->logger, $this->loop, $this->dvbGlobalContext, $this->channels);
         $this->streamsByChannelFrequency[$channelFrequency] = $tsStream;
         $tsStream->on('exit', function () use ($channelFrequency) {
             unset($this->streamsByChannelFrequency[$channelFrequency]);

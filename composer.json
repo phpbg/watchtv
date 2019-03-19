@@ -2,6 +2,7 @@
   "name": "phpbg/watch-tv",
   "require": {
     "php": ">=7.0",
+    "ext-pcntl": "*",
     "react/socket": "^1.1",
     "psr/log": "^1.0",
     "myclabs/php-enum": "^1.5",

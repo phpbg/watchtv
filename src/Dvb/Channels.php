@@ -89,7 +89,7 @@ class Channels
     }
 
     /**
-     * Return an array containing channel name and channel descriptor
+     * Return channel descriptor
      * @param int $channelId
      * @return array
      * @throws ChannelsNotFoundException
@@ -104,36 +104,32 @@ class Channels
             throw new ChannelsNotFoundException("Invalid channel : $channelId");
         }
 
-        return [key($requestedChannels), current($requestedChannels)];
+        return current($requestedChannels);
     }
 
     /**
-     * Return an array of pids (as integers) that compose the video and audio stream
-     * @param int $channelId
-     * @return array
-     * @throws ChannelsNotFoundException
+     * Return the first video PID and the first audio PID (if any)
+     *
+     * @param array $channelDescriptor
+     * @return array Array of PIDs
      */
-    public function getPidsByServiceId(int $channelId): array
-    {
-        $channel = $this->getChannelByServiceId($channelId);
+    public function getMainVideoAudioPids(array $channelDescriptor) {
         $pids = [];
-
-        if (!empty($channel[1]['VIDEO_PID'])) {
-            $pidsStr = $channel[1]['VIDEO_PID'];
+        if (!empty($channelDescriptor['VIDEO_PID'])) {
+            $pidsStr = $channelDescriptor['VIDEO_PID'];
             $ret = explode(' ', trim($pidsStr));
             if (!empty($ret)) {
-                $pids = array_merge($pids, $ret);
+                $pids[] = $ret[0];
             }
         }
 
-        if (!empty($channel[1]['AUDIO_PID'])) {
-            $pidsStr = $channel[1]['AUDIO_PID'];
+        if (!empty($channelDescriptor['AUDIO_PID'])) {
+            $pidsStr = $channelDescriptor['AUDIO_PID'];
             $ret = explode(' ', trim($pidsStr));
             if (!empty($ret)) {
-                $pids = array_merge($pids, $ret);
+                $pids[] = $ret[0];
             }
         }
-
         return $pids;
     }
 }

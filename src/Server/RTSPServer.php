@@ -218,7 +218,6 @@ class RTSPServer
             $resourcePath = explode('/', $uri);
             $channelServiceId = array_pop($resourcePath);
             $session->uri = $uri;
-            $pids = $this->dvbContext->channels->getPidsByServiceId($channelServiceId);
             $tsStreamPromise = $this->dvbContext->tsStreamFactory->getTsStream($channelServiceId);
             $tsStreamPromise
                 ->otherwise(function (/** @noinspection PhpUnusedParameterInspection */ MaxProcessReachedException $e) use ($resolve) {
@@ -229,8 +228,8 @@ class RTSPServer
                 ->otherwise(function (\Throwable $e) use ($reject) {
                     return $reject($e);
                 });
-            return $tsStreamPromise->then(function(TSStream $tsstream) use ($session, $pids, $channelServiceId, $connection, $resolve, $response) {
-                $tsstream->addClient($session, $pids, $channelServiceId);
+            return $tsStreamPromise->then(function(TSStream $tsstream) use ($session, $channelServiceId, $connection, $resolve, $response) {
+                $tsstream->addClient($session, $channelServiceId);
                 $this->sessions[$session->id] = $session;
                 $session->on('close', function ($serverTeardown) use ($session, $connection) {
                     $origin = $serverTeardown ? 'server' : 'client';

@@ -40,6 +40,8 @@ use PhpBg\MpegTs\Pid;
 use Psr\Log\LoggerInterface;
 use React\ChildProcess\Process;
 use React\EventLoop\LoopInterface;
+use function React\Promise\all;
+use React\Promise\Promise;
 use React\Stream\WritableStreamInterface;
 
 /**
@@ -83,6 +85,11 @@ class TSStream extends EventEmitter
      */
     private $logger;
 
+    /**
+     * @var Channels
+     */
+    private $channels;
+
     private $exited = false;
 
     /**
@@ -104,19 +111,29 @@ class TSStream extends EventEmitter
 
     private $epgGrabbing = false;
 
+    private $pmtExpectations = [];
+
+    /**
+     * @var LoopInterface
+     */
+    private $loop;
+
     /**
      * TSStream constructor.
      * @param Process $process
      * @param LoggerInterface $logger
      * @param LoopInterface $loop
      * @param GlobalContext $globalContext
+     * @param Channels $channels
      * @throws \PhpBg\DvbPsi\Exception
      */
-    public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop, GlobalContext $globalContext)
+    public function __construct(Process $process, LoggerInterface $logger, LoopInterface $loop, GlobalContext $globalContext, Channels $channels)
     {
         $this->process = $process;
         $this->logger = $logger;
+        $this->loop = $loop;
         $this->dvbGlobalContext = $globalContext;
+        $this->channels = $channels;
         $this->tsClients = [];
 
         $this->process->on('exit', [$this, '_handleExit']);
@@ -148,12 +165,14 @@ class TSStream extends EventEmitter
         foreach ($this->psiParser->getRegisteredPids() as $pid) {
             $this->tsParser->addPidFilter(new Pid($pid));
         }
-        $this->psiParser->on('parserAdd', function (/** @noinspection PhpUnusedParameterInspection */ $parser, $pidsAdded) {
+        $this->psiParser->on('parserAdd', function (/** @noinspection PhpUnusedParameterInspection */
+            $parser, $pidsAdded) {
             foreach ($pidsAdded as $pid) {
                 $this->tsParser->addPidFilter(new Pid($pid));
             }
         });
-        $this->psiParser->on('parserRemove', function (/** @noinspection PhpUnusedParameterInspection */ $parser, $pidsRemoved) {
+        $this->psiParser->on('parserRemove', function (/** @noinspection PhpUnusedParameterInspection */
+            $parser, $pidsRemoved) {
             foreach ($pidsRemoved as $pid) {
                 $this->tsParser->removePidFilter(new Pid($pid));
             }
@@ -191,6 +210,13 @@ class TSStream extends EventEmitter
         $this->logger->debug("Parser or stream error", ['exception' => $exception]);
     }
 
+    /**
+     * Copy incoming packets to clients that subscribed to it
+     *
+     * @param $pid
+     * @param $data
+     * @internal
+     */
     public function _handleTs($pid, $data)
     {
         if (!isset($this->tsClients[$pid])) {
@@ -204,6 +230,11 @@ class TSStream extends EventEmitter
         }
     }
 
+    /**
+     * Cleanup when process exit
+     *
+     * @internal
+     */
     public function _handleExit()
     {
         $this->logger->debug("Process exited : {$this->process->getCommand()}");
@@ -251,14 +282,16 @@ class TSStream extends EventEmitter
      * Register a client for given PIDs
      *
      * @param WritableStreamInterface $client
-     * @param array $pids
      * @param int $serviceId
+     * @throws ChannelsNotFoundException
      */
-    public function addClient(WritableStreamInterface $client, array $pids, $serviceId)
+    public function addClient(WritableStreamInterface $client, int $serviceId)
     {
         if ($this->exited) {
             throw new \RuntimeException();
         }
+        $channelDescriptor = $this->channels->getChannelByServiceId($serviceId);
+        $pids = $this->channels->getMainVideoAudioPids($channelDescriptor);
         if (empty($pids)) {
             throw new \RuntimeException("You must specify at least one PID to listen to");
         }
@@ -268,28 +301,22 @@ class TSStream extends EventEmitter
         if (!in_array(0, $pids)) {
             $pids[] = 0;
         }
-        if (isset($this->streamContext->pat)) {
-            if (isset($this->streamContext->pat->programs[$serviceId])) {
-                if (!in_array($this->streamContext->pat->programs[$serviceId], $pids)) {
-                    $pids[] = $this->streamContext->pat->programs[$serviceId];
-                }
-            }
-        }
-        if (!isset($this->streamContext->pat)) {
-            $this->streamContext->once('pat-update', function () use ($client, $serviceId) {
-                if (!in_array($client, $this->clients)) {
-                    return;
-                }
-                if (isset($this->streamContext->pat->programs[$serviceId])) {
-                    $pid = $this->streamContext->pat->programs[$serviceId];
-                    if (!isset($this->tsClients[$pid])) {
-                        $this->tsClients[$pid] = [];
-                        $this->tsParser->addPidPassthrough(new Pid($pid));
-                    }
-                    $this->tsClients[$pid][] = $client;
-                }
+        $patPromise = new Promise(function (callable $resolver) {
+            $this->psiParser->once('pat', function ($pat) use ($resolver) {
+                $resolver($pat);
             });
-        }
+        });
+        $pmtPromise = new Promise(function (callable $resolver) use ($serviceId) {
+            $this->pmtExpectations[] = [$serviceId, $resolver];
+            $this->psiParser->on('pmt', [$this, '_resolvePmtForServiceId']);
+        });
+        all([$patPromise, $pmtPromise])->then(function (array $patAndPmt) use ($client, $serviceId) {
+            // Delay new streams so the client will always select main video and audio PIDs
+            $this->loop->addTimer(1, function () use ($patAndPmt, $client, $serviceId) {
+                $this->addPMTPid($patAndPmt, $client, $serviceId);
+            });
+
+        });
         foreach ($pids as $pid) {
             if (!isset($this->tsClients[$pid])) {
                 $this->tsClients[$pid] = [];
@@ -303,6 +330,73 @@ class TSStream extends EventEmitter
         $client->on('close', function () use ($client) {
             $this->removeClient($client);
         });
+    }
+
+    /**
+     * @internal
+     * @param \PhpBg\DvbPsi\Tables\Pmt $pmt
+     */
+    public function _resolvePmtForServiceId(\PhpBg\DvbPsi\Tables\Pmt $pmt)
+    {
+        //$this->pmtExpectations[] = [$serviceId, $resolver];
+        foreach ($this->pmtExpectations as $idx => $pmtExpectation) {
+            $serviceId = $pmtExpectation[0];
+            if ($pmt->programNumber == $serviceId) {
+                $resolver = $pmtExpectation[1];
+                unset($this->pmtExpectations[$idx]);
+                if (empty($this->pmtExpectations)) {
+                    $this->psiParser->removeListener('pmt', [$this, '_resolvePmtForServiceId']);
+                }
+                $resolver($pmt);
+            }
+        }
+    }
+
+    /**
+     * Setup to pass PMT PID and all its streams PIDs to client
+     *
+     * @param array $patAndPmt
+     * @param WritableStreamInterface $client
+     * @param int $serviceId
+     */
+    private function addPMTPid(array $patAndPmt, WritableStreamInterface $client, int $serviceId)
+    {
+        // Check the client is still there
+        if (!in_array($client, $this->clients)) {
+            return;
+        }
+
+        $pids = [];
+
+        // Add PMT PID
+        /**
+         * @var \PhpBg\DvbPsi\Tables\Pat $pat
+         */
+        $pat = $patAndPmt[0];
+        if (isset($pat->programs[$serviceId])) {
+            $pids[] = $pat->programs[$serviceId];
+        }
+
+        // Add all elementary streams
+        /**
+         * @var \PhpBg\DvbPsi\Tables\Pmt $pmt
+         */
+        $pmt = $patAndPmt[1];
+        $elementaryStreamPids = array_keys($pmt->streams);
+        $pids = array_merge($pids, $elementaryStreamPids);
+
+        foreach ($pids as $pid) {
+            if (!isset($this->tsClients[$pid])) {
+                $this->tsClients[$pid] = [];
+                $this->tsParser->addPidPassthrough(new Pid($pid));
+            }
+            if (!in_array($client, $this->tsClients[$pid])) {
+                $this->logger->debug("Adding PID {$pid}");
+                $this->tsClients[$pid][] = $client;
+            } else {
+                $this->logger->debug("PID {$pid} already registered");
+            }
+        }
     }
 
     /**
@@ -336,6 +430,9 @@ class TSStream extends EventEmitter
         $this->autoKillIfKillable();
     }
 
+    /**
+     * Terminate process forcefully
+     */
     public function terminate()
     {
         if ($this->exited) {
@@ -347,6 +444,9 @@ class TSStream extends EventEmitter
         }
     }
 
+    /**
+     * Terminate process if nobody is using it
+     */
     protected function autoKillIfKillable()
     {
         if (empty($this->tsClients) && !$this->epgGrabbing) {
