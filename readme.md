@@ -6,6 +6,7 @@ This is a small server that allows you to watch digital television on your compu
 ## Features
 * scan and configure TV channels
 * browse your TV channels from a web browser
+* view current EPG while browsing channels
 * stream tv using RTSP 1.0
 * Kodi support, see [below](#kodi)
 * watch simultaneously all channels in the same multiplex
@@ -18,12 +19,14 @@ Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestri
 * It may work on other networks (Cable, Satellite, ATSC), but it is yet untested.
 * Please open an issue or merge request to report your success or failure to improve this software. 
 
-## Status
-It is in alpha stage, slow, but should be reliable enough (I've been running a server for weeks without problems).
+## Status - 1.0 milestone
+* It is working and functionnal
+* Needs more testing before stable release
+* Needs packaging for common linux distributions (at least Debian/Raspbian/Ubuntu)
+* Needs DVBV5 stability fixes to be upstreamed
 
-## TODO LIST - Help wanted
-These are ideas, please provide feedback and help:
-* browse electronic program guide (EPG) (easy, just a web page to do, will be next release feature)
+## Ideas for future releases
+* browse whole electronic program guide (EPG) (currently you can just view running EPG)
 * multiple adapter support
 * pause (live recording)
 * scheduled recording
@@ -32,7 +35,6 @@ These are ideas, please provide feedback and help:
 * watch TV directly in the browser with HTTP_Live_Streaming
   * https://en.wikipedia.org/wiki/HTTP_Live_Streaming
   * https://tools.ietf.org/html/rfc8216
-* packaging for common linux distributions
 
 ## Requirements
 You can run the server and the client on the same device if you want.
@@ -60,6 +62,7 @@ You can run the server and the client on the same device if you want.
 This is compatible with raspberry pi, but note that there is a bug that WILL crash your raspberry sooner or later. Please wait for bug resolution before using this on your raspberries: [bug report](https://bugs.launchpad.net/raspbian/+bug/1819650)
 
 A raspberry zero-w is enough, although I recommend you something more reliable:
+* the raspberry zero will be pushed at it's own limits (expect 80% to 100% CPU)
 * it has wifi only (you may try USB attached ethernet adapter)
 * some TV dongles require a lot of current, and some power supplies don't handle this corectly
 * Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberry 3B have wifi troubles - raspberry 3B+ seems not to be affected). Discussion [here](https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=188891&sid=afdef6524bddc08ec983fe57bb3a797c) and [here](https://www.raspberrypi.org/forums/viewtopic.php?f=36&t=234058)
@@ -78,7 +81,7 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
-    $ tar xf watchtv-0.3.0.tar.gz
+    $ tar xf watchtv-0.6.0.tar.gz
     ```
 3. Test the server manually
     ```shell
@@ -132,6 +135,7 @@ After cloning the project run:
 
 Build a release
 
+    #Make sure log level is set to INFO in server.php
     composer install --no-dev --optimize-autoloader
     cd ..
-    tar --exclude='watchtv/.git' --exclude='watchtv/.idea' -czf watchtv.tar.gz watchtv/
+    tar --exclude='watchtv/.git' --exclude='watchtv/.idea' --exclude='watchtv/channels.conf' -czf watchtv.tar.gz watchtv/
