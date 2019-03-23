@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb1eb341bd3e91d2da7ae06209c010b6",
+    "content-hash": "5abf8e0333c58d5ef31f8c6f441475c8",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -193,16 +193,16 @@
         },
         {
             "name": "phpbg/dvbpsi",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/dvbpsi.git",
-                "reference": "6d32ae4abe6cb3527487d6e8438e00da46197ad8"
+                "reference": "f5125f4abc1a0ed0d3fcff0a563da8c8d89c28c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/6d32ae4abe6cb3527487d6e8438e00da46197ad8",
-                "reference": "6d32ae4abe6cb3527487d6e8438e00da46197ad8",
+                "url": "https://api.github.com/repos/phpbg/dvbpsi/zipball/f5125f4abc1a0ed0d3fcff0a563da8c8d89c28c8",
+                "reference": "f5125f4abc1a0ed0d3fcff0a563da8c8d89c28c8",
                 "shasum": ""
             },
             "require": {
@@ -239,20 +239,20 @@
                 "mpegts",
                 "psi"
             ],
-            "time": "2019-03-10T16:47:19+00:00"
+            "time": "2019-03-23T19:48:22+00:00"
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.4.0",
+            "version": "0.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22"
+                "reference": "e36e40f29153707252d7179919331b5ba2891b56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22",
-                "reference": "4fe77a9384c9a1ab71d47634a6a8c9be5c79ab22",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/e36e40f29153707252d7179919331b5ba2891b56",
+                "reference": "e36e40f29153707252d7179919331b5ba2891b56",
                 "shasum": ""
             },
             "require": {
@@ -298,7 +298,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-03-17T19:16:57+00:00"
+            "time": "2019-03-23T10:14:10+00:00"
         },
         {
             "name": "phpbg/mpegts",
@@ -2987,7 +2987,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0"
+        "php": ">=7.0",
+        "ext-pcntl": "*"
     },
     "platform-dev": []
 }

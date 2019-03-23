@@ -61,30 +61,20 @@ class Epg
         $now = time();
         $runningEvents = [];
         foreach ($eitAggregators as $eitAggregator) {
-            $events = $eitAggregator->getAllEvents();
-            /**
-             * @var EitEvent[] $events
-             */
-            foreach ($events as $event) {
-                if ($event->startTimestamp > $now) {
-                    // Future event
-                    continue;
-                }
-                if ($event->startTimestamp + $event->duration < $now) {
-                    // Past event
-                    continue;
-                }
-                // Set fields as public fields so they'll be json encoded
-                $event->serviceId = $eitAggregator->serviceId;
-                $event->transportStreamId = $eitAggregator->transportStreamId;
-                $event->networkId = $eitAggregator->originalNetworkId;
-                foreach ($event->descriptors as &$descriptor) {
-                    $descriptor->_descriptorName = get_class($descriptor);
-                }
-                unset($descriptor);
-                $runningEvents[] = $event;
-                break;
+            $runningEvent = $eitAggregator->getRunningEvent($now);
+            if (! isset($runningEvent)) {
+                continue;
             }
+
+            // Set fields as public fields so they'll be json encoded
+            $runningEvent->serviceId = $eitAggregator->serviceId;
+            $runningEvent->transportStreamId = $eitAggregator->transportStreamId;
+            $runningEvent->networkId = $eitAggregator->originalNetworkId;
+            foreach ($runningEvent->descriptors as &$descriptor) {
+                $descriptor->_descriptorName = get_class($descriptor);
+            }
+            unset($descriptor);
+            $runningEvents[] = $runningEvent;
         }
         return $runningEvents;
     }

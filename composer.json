@@ -10,8 +10,8 @@
     "react/child-process": "^0.6",
     "react/stream": "^1.0",
     "phpbg/mpegts": "^0.2.0",
-    "phpbg/dvbpsi": "^0.1.0",
-    "phpbg/mini-httpd": "^0.4",
+    "phpbg/dvbpsi": "^0.1.1",
+    "phpbg/mini-httpd": "^0.4.1",
     "phpbg/rtsp": "^0.3"
   },
   "autoload": {

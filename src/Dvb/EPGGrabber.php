@@ -281,31 +281,25 @@ class EPGGrabber
     }
 
     /**
-     * Return the next timestamp we will re grab channels, based on next event ending
+     * Return the next timestamp we will re grab channels
+     * Is is currently based on next event ending, we could certainly grab less frequently, but whatever...
      *
      * @return int
      */
     public function getNextUpdateTimestamp(): int
     {
         $nextGrabTimestamp = time() + static::DEFAULT_GRAB_INTERVAL;
+
+        // Try to get running event using all events, not following events
+        // This allows us to scan EPG less frequently
+        $now = time();
         foreach ($this->getEitAggregators() as $eitAggregator) {
-            /**
-             * @var EitServiceAggregator $eitAggregator
-             */
-            $runningEvent = $eitAggregator->getRunningEvent();
-            if (!isset($runningEvent)) {
+            $runningEvent = $eitAggregator->getRunningEvent($now);
+            if (! isset($runningEvent)) {
                 continue;
             }
-            if (empty($runningEvent->startTimestamp) || empty($runningEvent->duration)) {
-                continue;
-            }
-            if (time() - 300 > $runningEvent->startTimestamp + $runningEvent->duration) {
-                $this->logger->info("Ignoring following event that seem to be terminated since a long time");
-                $this->logger->info($runningEvent->getShortEventText());
-                $this->logger->info("End date: " . date('Y-m-d H:i:s', $runningEvent->startTimestamp + $runningEvent->duration));
-                continue;
-            }
-            $nextGrabTimestamp = min($nextGrabTimestamp, $runningEvent->startTimestamp + $runningEvent->duration);
+            $stopTimestamp = $runningEvent->startTimestamp + $runningEvent->duration;
+            $nextGrabTimestamp = min($nextGrabTimestamp, $stopTimestamp);
         }
         return $nextGrabTimestamp;
     }
