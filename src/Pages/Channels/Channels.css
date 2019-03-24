@@ -1,8 +1,21 @@
-a.channel {
-    display: block;
-    margin: 10px;
+#channelContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+#channelContainer > * {
     padding: 10px 5px 10px 5px;
+}
+
+#channelContainer .channel {
+    height: 100%;
+}
+
+#channelContainer a {
+    display: block;
     overflow: hidden;
+    text-decoration: none;
 }
 
 nav ul {
