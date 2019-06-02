@@ -3,13 +3,29 @@
 
     <section class="w3-container">
         <h2>Requirements</h2>
+        <p>You need at least one working tuner and one working scanner</p>
         <ul>
-            <li v-for="check in checks">
-                <code class="w3-codespan">{{check.cmd}}</code> :
-                <span v-show="check.status==0">OK</span>
-                <span v-show="check.status!=0"><b>KO</b></span>
-                <span v-show="check.status!=0 && check.resolution[check.status]">{{check.resolution[check.status]}}</span>
-                <span v-show="check.status!=0 && ! check.resolution[check.status]">Try running the command in a shell to get detailed error</span>
+            <li>
+                <h3>Tuners</h3>
+                <ul>
+                    <li v-for="check in tuners">
+                        <code class="w3-codespan">{{check.cmd}}</code> :
+                        <span v-show="check.works">OK</span>
+                        <span v-show="! check.works"><b>KO</b></span>
+                        <span v-show="! check.works">{{check.resolution}}</span>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <h3>Scanners</h3>
+                <ul>
+                    <li v-for="check in scanners">
+                        <code class="w3-codespan">{{check.cmd}}</code> :
+                        <span v-show="check.works">OK</span>
+                        <span v-show="! check.works"><b>KO</b></span>
+                        <span v-show="! check.works">{{check.resolution}}</span>
+                    </li>
+                </ul>
             </li>
         </ul>
 

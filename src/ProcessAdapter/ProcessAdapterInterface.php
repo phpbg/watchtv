@@ -24,56 +24,28 @@
  * SOFTWARE.
  */
 
-namespace PhpBg\WatchTv\Server;
+namespace PhpBg\WatchTv\ProcessAdapter;
 
-use PhpBg\DvbPsi\Context\GlobalContext;
-use PhpBg\MiniHttpd\Model\ApplicationContext;
-use PhpBg\WatchTv\Dvb\Channels;
-use PhpBg\WatchTv\Dvb\EPGGrabber;
-use PhpBg\WatchTv\Dvb\TSStreamFactory;
-use PhpBg\WatchTv\ProcessAdapter\TunerProcessAdapterInterface;
+use React\Promise\PromiseInterface;
 
-
-class Context extends ApplicationContext
+interface ProcessAdapterInterface
 {
     /**
-     * @var int
+     * Return a promise that resolve in true if
+     *
+     * @return PromiseInterface
      */
-    public $httpPort;
+    public function works(): PromiseInterface;
 
     /**
-     * @var int
+     * Return an array explaining how to setup the process adapter
+     * Keys are os, values are a string usually containing commands
+     * e.g. [
+     * 'raspbian/ubuntu' => '$ sudo apt install dvb-tools',
+     * 'debian' => '# apt install dvb-tools'
+     * ]
+     *
+     * @return array
      */
-    public $rtspPort;
-
-    /**
-     * @var Channels
-     */
-    public $channels;
-
-    /**
-     * Application root path
-     * @var string
-     */
-    public $rootPath;
-
-    /**
-     * @var TSStreamFactory
-     */
-    public $tsStreamFactory;
-
-    /**
-     * @var EPGGrabber
-     */
-    public $epgGrabber;
-
-    /**
-     * @var GlobalContext
-     */
-    public $dvbGlobalContext;
-
-    /**
-     * @var TunerProcessAdapterInterface
-     */
-    public $tunerProcessAdapter;
+    public function getSetupHint(): array;
 }

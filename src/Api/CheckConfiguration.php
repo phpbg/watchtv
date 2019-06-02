@@ -26,56 +26,60 @@
 
 namespace PhpBg\WatchTv\Api;
 
+use PhpBg\WatchTv\ProcessAdapter\AbstractProcessAdapter;
+use PhpBg\WatchTv\ProcessAdapter\DvbjetProcessAdapter;
+use PhpBg\WatchTv\ProcessAdapter\DvbscanProcessAdapter;
+use PhpBg\WatchTv\ProcessAdapter\DvbzapProcessAdapter;
 use Psr\Http\Message\ServerRequestInterface;
-use React\ChildProcess\Process;
+use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 use function React\Promise\all;
-use React\Promise\Deferred;
 
 class CheckConfiguration
 {
     private $loop;
+    private $logger;
 
-    public function __construct(LoopInterface $loop)
+    public function __construct(LoopInterface $loop, LoggerInterface $logger)
     {
         $this->loop = $loop;
+        $this->logger = $logger;
     }
 
     public function __invoke(ServerRequestInterface $request)
     {
-        $checks = [
+        /**
+         * @var AbstractProcessAdapter[] $adapters
+         */
+        $adapters = [
             [
-                'cmd' => 'dvbv5-scan --version',
-                'status' => null,
-                'resolution' => [
-                    127 => [
-                        'raspbian/ubuntu' => '$ sudo apt install dvb-tools',
-                        'debian' => '# apt install dvb-tools'
-                    ]
-                ]
+                'instance' => new DvbscanProcessAdapter($this->loop, $this->logger),
+                'isTuner' => false,
+                'isScanner' => true,
             ],
             [
-                'cmd' => 'dvbv5-zap --version',
-                'status' => null,
-                'resolution' => [
-                    127 => [
-                        'raspbian/ubuntu' => '$ sudo apt install dvb-tools',
-                        'debian' => '# apt install dvb-tools'
-                    ]
-                ]
-            ]
+                'instance' => new DvbzapProcessAdapter($this->loop, $this->logger),
+                'isTuner' => true,
+                'isScanner' => false,
+            ],
+            [
+                'instance' => new DvbjetProcessAdapter($this->loop, $this->logger),
+                'isTuner' => true,
+                'isScanner' => false,
+            ],
         ];
 
         $promises = [];
-        foreach ($checks as $check) {
-            $deferred = new Deferred();
-            $promises[] = $deferred->promise();
-            $process = new Process($check['cmd']);
-            $process->on('exit', function ($statusCode) use ($check, $deferred) {
-                $check['status'] = $statusCode;
-                $deferred->resolve($check);
+        foreach ($adapters as $adapter) {
+            $promises[] = $adapter['instance']->works()->then(function($works) use ($adapter) {
+                return [
+                    'cmd' => $adapter['instance']->getCheckCmd(),
+                    'works' => $works,
+                    'resolution' => $adapter['instance']->getSetupHint(),
+                    'isTuner' => $adapter['isTuner'],
+                    'isScanner' => $adapter['isScanner'],
+                    ];
             });
-            $process->start($this->loop);
         }
 
         return all($promises);

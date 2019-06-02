@@ -39,10 +39,28 @@ new Vue({
         }
     },
     computed: {
+        scanners: function() {
+            return this.checks.filter(function(check) {
+                return check.isScanner;
+            });
+        },
+        hasScanner: function () {
+            return this.scanners.filter(function(check) {
+                return check.works;
+            }).length > 0;
+        },
+        tuners: function() {
+            return this.checks.filter(function(check) {
+                return check.isTuner;
+            });
+        },
+        hasTuner: function () {
+            return this.tuners.filter(function(check) {
+                return check.works;
+            }).length > 0;
+        },
         showScan: function () {
-            return this.checks.length > 0 && this.checks.reduce(function (accumulator, check) {
-                return accumulator && check.status == 0;
-            }, true);
+            return this.hasScanner && this.hasTuner;
         }
     },
     methods: {

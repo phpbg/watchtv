@@ -243,16 +243,16 @@
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.4.1",
+            "version": "0.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "e36e40f29153707252d7179919331b5ba2891b56"
+                "reference": "7b38377fd3a6506091a60ea494c820856bd65a3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/e36e40f29153707252d7179919331b5ba2891b56",
-                "reference": "e36e40f29153707252d7179919331b5ba2891b56",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/7b38377fd3a6506091a60ea494c820856bd65a3f",
+                "reference": "7b38377fd3a6506091a60ea494c820856bd65a3f",
                 "shasum": ""
             },
             "require": {
@@ -298,7 +298,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-03-23T10:14:10+00:00"
+            "time": "2019-03-28T09:36:47+00:00"
         },
         {
             "name": "phpbg/mpegts",

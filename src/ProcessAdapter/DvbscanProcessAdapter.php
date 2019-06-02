@@ -24,56 +24,43 @@
  * SOFTWARE.
  */
 
-namespace PhpBg\WatchTv\Server;
+namespace PhpBg\WatchTv\ProcessAdapter;
 
-use PhpBg\DvbPsi\Context\GlobalContext;
-use PhpBg\MiniHttpd\Model\ApplicationContext;
-use PhpBg\WatchTv\Dvb\Channels;
-use PhpBg\WatchTv\Dvb\EPGGrabber;
-use PhpBg\WatchTv\Dvb\TSStreamFactory;
-use PhpBg\WatchTv\ProcessAdapter\TunerProcessAdapterInterface;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\LoopInterface;
 
-
-class Context extends ApplicationContext
+class DvbscanProcessAdapter extends AbstractProcessAdapter
 {
-    /**
-     * @var int
-     */
-    public $httpPort;
+    private $loop;
+    private $logger;
 
-    /**
-     * @var int
-     */
-    public $rtspPort;
+    public function __construct(LoopInterface $loop, LoggerInterface $logger)
+    {
+        $this->loop = $loop;
+        $this->logger = $logger;
+    }
 
-    /**
-     * @var Channels
-     */
-    public $channels;
+    public function getCheckCmd(): string
+    {
+        return 'dvbv5-scan --version';
+    }
 
-    /**
-     * Application root path
-     * @var string
-     */
-    public $rootPath;
+    public function getLoop(): LoopInterface
+    {
+        return $this->loop;
+    }
 
-    /**
-     * @var TSStreamFactory
-     */
-    public $tsStreamFactory;
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
 
-    /**
-     * @var EPGGrabber
-     */
-    public $epgGrabber;
-
-    /**
-     * @var GlobalContext
-     */
-    public $dvbGlobalContext;
-
-    /**
-     * @var TunerProcessAdapterInterface
-     */
-    public $tunerProcessAdapter;
+    public function getSetupHint(): array
+    {
+        return [
+            // TODO arch and fedora
+            'raspbian/ubuntu' => '$ sudo apt install dvb-tools',
+            'debian' => '# apt install dvb-tools'
+        ];
+    }
 }

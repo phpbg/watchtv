@@ -55,7 +55,7 @@ class HTTPServer
             '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels), $defaultRenderer),
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
-            '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop), new Json()),
+            '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop, $dvbContext->logger), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
             '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),
             '/api/channels/logical-numbers' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'logicalNumbers'], new Json()),

@@ -27,8 +27,9 @@
 namespace PhpBg\WatchTv\Dvb;
 
 use PhpBg\DvbPsi\Context\GlobalContext;
+use PhpBg\DvbPsi\Exception;
+use PhpBg\WatchTv\ProcessAdapter\TunerProcessAdapterInterface;
 use Psr\Log\LoggerInterface;
-use React\ChildProcess\Process;
 use React\EventLoop\LoopInterface;
 use React\Promise\ExtendedPromiseInterface;
 use React\Promise\Promise;
@@ -45,6 +46,11 @@ class TSStreamFactory
     private $maxProcessAllowed;
     private $dvbGlobalContext;
 
+    /**
+     * @var TunerProcessAdapterInterface
+     */
+    private $tunerProcessAdapter;
+
     public function __construct(LoggerInterface $logger, LoopInterface $loop, Channels $channels, GlobalContext $globalContext)
     {
         $this->logger = $logger;
@@ -53,6 +59,10 @@ class TSStreamFactory
         $this->streamsByChannelFrequency = [];
         $this->maxProcessAllowed = 1;
         $this->dvbGlobalContext = $globalContext;
+    }
+
+    public function setTunerProcessAdapter(TunerProcessAdapterInterface $tunerProcessAdapter) {
+        $this->tunerProcessAdapter = $tunerProcessAdapter;
     }
 
     /**
@@ -74,7 +84,6 @@ class TSStreamFactory
             }
 
             if (!isset($this->streamsByChannelFrequency[$channelFrequency])) {
-                $channelsFile = $this->channels->getChannelsFilePath();
                 if (count($this->streamsByChannelFrequency) >= $this->maxProcessAllowed) {
                     $terminatingStream = $this->terminateTsStream();
                     if (!isset($terminatingStream)) {
@@ -85,29 +94,29 @@ class TSStreamFactory
                             return $exitResolver();
                         });
                     });
-                    return $exitPromise->then(function () use ($resolver, $channelsFile, $channelDescriptor, $channelFrequency) {
-                        return $resolver($this->doCreateTsStream($channelsFile, $channelDescriptor['NAME'], $channelFrequency));
+                    return $exitPromise->then(function () use ($resolver, $channelDescriptor, $channelFrequency) {
+                        return $resolver($this->doCreateTsStream($channelDescriptor));
                     });
                 }
-                $this->doCreateTsStream($channelsFile, $channelDescriptor['NAME'], $channelFrequency);
+                $this->doCreateTsStream($channelDescriptor);
             }
             return $resolver($this->streamsByChannelFrequency[$channelFrequency]);
         });
     }
 
     /**
-     * @param string $channelsFile
-     * @param string $channelName
-     * @param $channelFrequency
+     * @param array $channelDescriptor
      * @return TSStream
      * @throws \PhpBg\DvbPsi\Exception
      */
-    protected function doCreateTsStream(string $channelsFile, string $channelName, $channelFrequency)
+    protected function doCreateTsStream(array $channelDescriptor)
     {
-        $processLine = "exec dvbv5-zap -c {$channelsFile} -v --lna=-1 '{$channelName}' -P -o -";
-        $this->logger->debug("Starting $processLine");
-        $process = new Process($processLine);
+        if (! isset($this->tunerProcessAdapter)) {
+            throw new Exception("No tuner process available");
+        }
+        $process = $this->tunerProcessAdapter->start($channelDescriptor);
         $tsStream = new TSStream($process, $this->logger, $this->loop, $this->dvbGlobalContext, $this->channels);
+        $channelFrequency = $channelDescriptor['FREQUENCY'];
         $this->streamsByChannelFrequency[$channelFrequency] = $tsStream;
         $tsStream->on('exit', function () use ($channelFrequency) {
             unset($this->streamsByChannelFrequency[$channelFrequency]);

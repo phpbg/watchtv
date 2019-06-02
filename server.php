@@ -20,6 +20,8 @@ $dvbContext = new \PhpBg\WatchTv\Server\Context();
 $dvbContext->loop = $loop;
 $dvbContext->httpPort = 8080;
 $dvbContext->rtspPort = 8554;
+
+// TODO ADJUST log level for release
 $logLevel = \Psr\Log\LogLevel::DEBUG;
 $logFormatter = new \PhpBg\MiniHttpd\Logger\ConsoleFormatter(false);
 $dvbContext->logger = new \PhpBg\MiniHttpd\Logger\Console($logLevel, 'php://stderr', $logFormatter);
@@ -38,17 +40,58 @@ $httpServer = new \PhpBg\WatchTv\Server\HTTPServer($dvbContext);
 $rtspServer = new \PhpBg\WatchTv\Server\RTSPServer($dvbContext);
 
 
+// Check and select tuner
+$promises = [];
+$dvbScan = new \PhpBg\WatchTv\ProcessAdapter\DvbscanProcessAdapter($dvbContext->loop, $dvbContext->logger, $dvbContext->channels);
+$promises[] = $dvbScan->works()->then(function($works) use ($dvbScan) {
+    if ($works) {
+        $dvbScan->getLogger()->notice("dvb-scan is present");
+    } else {
+        $dvbScan->getLogger()->notice("dvb-scan is **not** present");
+        $dvbScan->getLogger()->notice("dvb-scan is only required you you want to scan for channels");
+        $dvbScan->getLogger()->notice("Setup hints (if necessary):", $dvbScan->getSetupHint());
+    }
+});
+
+$dvbZap = new \PhpBg\WatchTv\ProcessAdapter\DvbzapProcessAdapter($dvbContext->loop, $dvbContext->logger, $dvbContext->channels);
+$promises[] = $dvbZap->works()->then(function($works) use ($dvbZap, $dvbContext) {
+    if ($works) {
+        $dvbZap->getLogger()->notice("dvb-zap is present");
+        $dvbContext->tunerProcessAdapter = $dvbZap;
+        $dvbContext->tsStreamFactory->setTunerProcessAdapter($dvbZap);
+    } else {
+        $dvbZap->getLogger()->notice("dvb-zap is **not** present");
+        $dvbZap->getLogger()->notice("dvb-zap is a tuner, it is required to play channels. Install it if you don't have another one");
+        $dvbZap->getLogger()->notice("Setup hints (if necessary):", $dvbZap->getSetupHint());
+    }
+});
+
+$dvbJet = new \PhpBg\WatchTv\ProcessAdapter\DvbjetProcessAdapter($dvbContext->loop, $dvbContext->logger);
+$promises[] = $dvbJet->works()->then(function($works) use ($dvbJet, $dvbContext) {
+    if ($works) {
+        $dvbJet->getLogger()->notice("dvbjet is present");
+        $dvbContext->tunerProcessAdapter = $dvbJet;
+        $dvbContext->tsStreamFactory->setTunerProcessAdapter($dvbJet);
+    } else {
+        $dvbJet->getLogger()->notice("dvbjet is **not** present");
+        $dvbJet->getLogger()->notice("dvbjet is a tuner, it is required to play channels. Install it if you don't have another one");
+        $dvbJet->getLogger()->notice("Setup hints (if necessary):", $dvbJet->getSetupHint());
+    }
+});
+
+\React\Promise\all($promises)->then(function() use($dvbContext) {
+    if (! isset($dvbContext->tunerProcessAdapter)) {
+        $dvbContext->logger->error("No tuner is installed on your system. Please install one and restart");
+    } else {
+        // Start EPG Grabber
+        $dvbContext->epgGrabber->grab();
+    }
+});
+
+
 // Start loop
 if (extension_loaded('xdebug')) {
     $dvbContext->logger->warning('The "xdebug" extension is loaded, this has a major impact on performance.');
 }
 $dvbContext->logger->notice("Now just open your browser and browse http://localhost:{$dvbContext->httpPort} Replace localhost with your server ip address if browsing from local network");
-
-
-// Start EPG Grabber
-$loop->futureTick(function() use ($dvbContext) {
-    $dvbContext->epgGrabber->grab();
-});
-
-
 $loop->run();
