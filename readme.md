@@ -26,7 +26,8 @@ Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestri
 * Needs DVBV5 stability fixes to be upstreamed
 
 ## Ideas for future releases
-* browse whole electronic program guide (EPG) (currently you can just view running EPG)
+* browse whole electronic program guide (EPG) on the web interface (currently you can just view running EPG in the web page, full EPG is available with Kodi)
+* live update web interface to reflect avaliable channels when a stream is already running
 * multiple adapter support
 * pause (live recording)
 * scheduled recording
