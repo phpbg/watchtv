@@ -28,7 +28,9 @@ namespace PhpBg\WatchTv\Pages\Epg;
 
 use GuzzleHttp\Psr7\Response;
 use PhpBg\DvbPsi\Context\EitServiceAggregator;
+use PhpBg\DvbPsi\Descriptors\Content;
 use PhpBg\DvbPsi\Descriptors\ShortEvent;
+use PhpBg\DvbPsi\Descriptors\Values\ContentNibble;
 use PhpBg\WatchTv\Dvb\Channels;
 use PhpBg\MiniHttpd\Controller\AbstractController;
 use PhpBg\MiniHttpd\Middleware\ContextTrait;
@@ -79,10 +81,18 @@ class Epg extends AbstractController
                 $stop = date('YmdHis O', $eitEvent->startTimestamp + $eitEvent->duration);
 
                 $shortEvent = null;
+                $contentDescriptor = null;
                 foreach ($eitEvent->descriptors as $descriptor) {
+                    if (isset($shortEvent) && isset($contentDescriptor)) {
+                        break;
+                    }
                     if ($descriptor instanceof ShortEvent) {
                         $shortEvent = $descriptor;
-                        break;
+                        continue;
+                    }
+                    if ($descriptor instanceof Content) {
+                        $contentDescriptor = $descriptor;
+                        continue;
                     }
                 }
 
@@ -94,8 +104,26 @@ class Epg extends AbstractController
                     $content .= '<desc>' . htmlspecialchars($shortEvent->text) . '</desc>';
                     $content .= "\n";
                 }
-                //TODO category
-                //$content .= '      <category>Category</category>';
+                if (isset($contentDescriptor)) {
+                    $types = [];
+                    // Try to get exact category
+                    foreach ($contentDescriptor->nibbles as $nibble) {
+                        if (isset(ContentNibble::NIBBLES[$nibble[0]][$nibble[1]])) {
+                            $types[] = ContentNibble::NIBBLES[$nibble[0]][$nibble[1]];
+                        }
+                    }
+                    if (empty($types)) {
+                        //Try to get general content category
+                        foreach ($contentDescriptor->nibbles as $nibble) {
+                            if (isset(ContentNibble::NIBBLES[$nibble[0]][0x0])) {
+                                $types[] = ContentNibble::NIBBLES[$nibble[0]][0x0];
+                            }
+                        }
+                    }
+                    if (! empty($types)) {
+                        $content .= '<category>'. implode(", ", $types) .'</category>';
+                    }
+                }
                 $content .= '</programme>';
                 $content .= "\n";
             }
