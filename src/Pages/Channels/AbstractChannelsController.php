@@ -35,12 +35,14 @@ abstract class AbstractChannelsController extends AbstractController
     protected $rtspPort;
     protected $channels;
     protected $dvbGlobalContext;
+    protected $isRelease;
 
-    public function __construct(int $rtspPort, \PhpBg\WatchTv\Dvb\Channels $channels, GlobalContext $dvbGlobalContext)
+    public function __construct(int $rtspPort, \PhpBg\WatchTv\Dvb\Channels $channels, GlobalContext $dvbGlobalContext, bool $isRelease)
     {
         $this->rtspPort = $rtspPort;
         $this->channels = $channels;
         $this->dvbGlobalContext = $dvbGlobalContext;
+        $this->isRelease = $isRelease;
     }
 
     /**

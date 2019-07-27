@@ -52,7 +52,7 @@ class Channels extends AbstractChannelsController
 
         $context = $this->getContext($request);
         $context->renderOptions['bottomScripts'] = [
-            "/vue-2.5.22.js", //TODO for release: back to min.js
+            $this->isRelease ? "/vue-2.5.22.min.js" : "/vue-2.5.22.js",
             "/jquery-3.3.1.min.js"
         ];
         $context->renderOptions['headCss'] = ['/w3css-4.12.css'];

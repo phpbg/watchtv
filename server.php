@@ -20,9 +20,8 @@ $dvbContext = new \PhpBg\WatchTv\Server\Context();
 $dvbContext->loop = $loop;
 $dvbContext->httpPort = 8080;
 $dvbContext->rtspPort = 8554;
-
-// TODO ADJUST log level for release
-$logLevel = \Psr\Log\LogLevel::DEBUG;
+$dvbContext->isRelease = true;
+$logLevel = $dvbContext->isRelease ? \Psr\Log\LogLevel::INFO : \Psr\Log\LogLevel::DEBUG;
 $logFormatter = new \PhpBg\MiniHttpd\Logger\ConsoleFormatter(false);
 $dvbContext->logger = new \PhpBg\MiniHttpd\Logger\Console($logLevel, 'php://stderr', $logFormatter);
 $dvbContext->rootPath = __DIR__;
@@ -42,7 +41,7 @@ $rtspServer = new \PhpBg\WatchTv\Server\RTSPServer($dvbContext);
 
 // Check and select tuner
 $promises = [];
-$dvbScan = new \PhpBg\WatchTv\ProcessAdapter\DvbscanProcessAdapter($dvbContext->loop, $dvbContext->logger, $dvbContext->channels);
+$dvbScan = new \PhpBg\WatchTv\ProcessAdapter\DvbscanProcessAdapter($dvbContext->loop, $dvbContext->logger);
 $promises[] = $dvbScan->works()->then(function($works) use ($dvbScan) {
     if ($works) {
         $dvbScan->getLogger()->notice("dvb-scan is present");

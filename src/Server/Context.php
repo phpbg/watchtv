@@ -76,4 +76,9 @@ class Context extends ApplicationContext
      * @var TunerProcessAdapterInterface
      */
     public $tunerProcessAdapter;
+
+    /**
+     * @var bool
+     */
+    public $isRelease;
 }

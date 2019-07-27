@@ -160,7 +160,7 @@ class EPGGrabber
             if (in_array($channelDescriptor['FREQUENCY'], $this->doneMultiplexes)) {
                 continue;
             }
-            $this->logger->info("Grabbing EPG for {$channelDescriptor['FREQUENCY']}");
+            $this->logger->debug("Grabbing EPG for {$channelDescriptor['FREQUENCY']}");
             $this->doneMultiplexes[] = $channelDescriptor['FREQUENCY'];
 
             $tsStreamPromise = $this->tsStreamFactory->getTsStream($channelDescriptor['SERVICE_ID']);

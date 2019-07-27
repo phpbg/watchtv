@@ -36,23 +36,25 @@ class Configure extends AbstractController
     use ContextTrait;
 
     private $channels;
+    private $isRelease;
 
-    public function __construct(Channels $channels)
+    public function __construct(Channels $channels, bool $isRelease)
     {
         $this->channels = $channels;
+        $this->isRelease = $isRelease;
     }
 
     public function __invoke(ServerRequestInterface $request)
     {
         $context = $this->getContext($request);
         $context->renderOptions['bottomScripts'] = [
-            "/vue-2.5.22.min.js",
+            $this->isRelease ? "/vue-2.5.22.min.js" : "/vue-2.5.22.js",
             "/jquery-3.3.1.min.js"
         ];
         $context->renderOptions['headCss'] = ['/w3css-4.12.css'];
 
         return [
-            'scanCmd' => "dvbv5-scan -v -o " . $this->channels->getChannelsFilePath(),
+            'scanCmd' => "sudo dvbv5-scan -v -o " . $this->channels->getChannelsFilePath(),
         ];
     }
 }
