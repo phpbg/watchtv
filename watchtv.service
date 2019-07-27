@@ -3,10 +3,10 @@ Description=Watch TV server
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/php /your/path/to/watchtv/server.php
+ExecStart=/usr/bin/php /opt/watchtv/server.php
 Type=simple
-User=<your user>
-Group=<your group>
+User=watchtv
+Group=watchtv
 Restart=always
 RestartSec=3s
 

@@ -12,30 +12,19 @@ This is a small server that allows you to watch digital television on your compu
 * watch simultaneously all channels in the same multiplex
 * logical channel numbering (please note that this is not standard and may depend on your country)
 
+## Quick installation (debian, raspbian, ubuntu)
+```shell
+wget https://github.com/phpbg/watchtv/releases/download/1.0.0/watchtv-1.0.0.tar.gz
+tar xf watchtv-1.0.0.tar.gz
+sudo ./install.sh
+```
+
 ## Is is compatible in my country?
 Use [this map](https://fr.wikipedia.org/wiki/DVB-T#/media/File:Digital_terrestrial_television_standards.svg) to know your broadcasting technology.
 * **This has been developed and tested on a DVB-T network only**, with MPEG-4 (H.264) streams.
 * It will probably work on DVB-T2 (not tested yet).
 * It may work on other networks (Cable, Satellite, ATSC), but it is yet untested.
 * Please open an issue or merge request to report your success or failure to improve this software. 
-
-## Status - 1.0 milestone
-* It is working and functionnal
-* Needs more testing before stable release
-* Needs packaging for common linux distributions (at least Debian/Raspbian/Ubuntu)
-* Needs DVBV5 stability fixes to be upstreamed
-
-## Ideas for future releases
-* browse whole electronic program guide (EPG) on the web interface (currently you can just view running EPG in the web page, full EPG is available with Kodi)
-* live update web interface to reflect avaliable channels when a stream is already running
-* multiple adapter support
-* pause (live recording)
-* scheduled recording
-* remote
-* performance improvements (starting a channel is way too slow)
-* watch TV directly in the browser with HTTP_Live_Streaming
-  * https://en.wikipedia.org/wiki/HTTP_Live_Streaming
-  * https://tools.ietf.org/html/rfc8216
 
 ## Requirements
 You can run the server and the client on the same device if you want.
@@ -60,7 +49,7 @@ You can run the server and the client on the same device if you want.
 * A TV adapter
 * ethernet network. Wifi works but please avoid wifi: **wifi is not that reliable**. I do not recommend you use wifi for the server side.
 
-This is compatible with raspberry pi, but note that there is a bug that WILL crash your raspberry sooner or later. Please wait for bug resolution before using this on your raspberries: [bug report](https://bugs.launchpad.net/raspbian/+bug/1819650)
+**IMPORTANT**: there is a bug in dvbv5 that may crash your raspberry sooner or later. Please wait for bug resolution before using this on your raspberries: [bug report](https://bugs.launchpad.net/raspbian/+bug/1819650). If you experience the issue I highly suggest you install and use dvbjet from https://github.com/lightful/DVBdirect , it is faster and stable. 
 
 A raspberry zero-w is enough, although I recommend you something more reliable:
 * the raspberry zero will be pushed at it's own limits (expect 80% to 100% CPU)
@@ -68,7 +57,7 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 * some TV dongles require a lot of current, and some power supplies don't handle this corectly
 * Raspberry pi does not have a reliable wifi (at least raspberry-zero and raspberry 3B have wifi troubles - raspberry 3B+ seems not to be affected). Discussion [here](https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=188891&sid=afdef6524bddc08ec983fe57bb3a797c) and [here](https://www.raspberrypi.org/forums/viewtopic.php?f=36&t=234058)
 
-## Installation
+## Manual installation
 
 1. Install requirements
     Ubuntu / raspbian
@@ -82,7 +71,7 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
-    $ tar xf watchtv-0.6.0.tar.gz
+    $ tar xf watchtv-1.0.0.tar.gz
     ```
 3. Test the server manually
     ```shell
@@ -93,8 +82,8 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 ## Installing as a service with systemd
 If you want the server to start automatically at boot, install it as a service.
 1. edit `watchtv.service`
-    * fix `ExecStart` path
-    * set `User` and `Group`
+    * change `ExecStart` path, or copy the files extracted to `/opt/watchtv`
+    * change `User` and `Group` or create watchtv user with `useradd -U watchtv -M -G video`
 2. copy `watchtv.service` to `/etc/systemd/system/`
     ```shell
     $ sudo cp watchtv.service /etc/systemd/system/
@@ -118,7 +107,7 @@ To check logs run `$ journalctl -u watchtv`
 See [here](https://www.linuxtv.org/wiki/index.php/Hardware_device_information) for a complete list of DVB digital devices that **should** be compatible.
 Tested:
   * TerraTec Cinergy T Stick+: OK
-  * RTL SDR v2: OK but some glitches appears after a few hours (when the dongle is hot)
+  * [RTL SDR v2](https://www.rtl-sdr.com/): OK but some glitches appears after a few hours (when the dongle is hot)
   * [Raspberry TV HAT](https://www.raspberrypi.org/blog/raspberry-pi-tv-hat/) **should** work. If you have one please open an issue or a merge request to report the status (try to run it for many hours to check longterm stability). Note: this device use [SPI at 55Mhz](https://patchwork.kernel.org/patch/10003465/#21035387). I don't know yet if this is sufficient to watch *all* channels within a multiplex...
   
 ### Horizontal lines (more or less visible) on image
@@ -127,6 +116,20 @@ Your video may be interlaced.
 With mpv, try pressing `d` to activate deinterlace
 
 If it works, you can make it permanent with `deinterlace=yes` in `~/.config/mpv/mpv.conf`
+
+## Ideas for future releases
+* Packaging for common linux distributions
+* Support Fedora and arch in install script
+* browse whole electronic program guide (EPG) on the web interface (currently you can just view running EPG in the web page, full EPG is available with Kodi)
+* live update web interface to reflect avaliable channels when a stream is already running
+* multiple adapter support
+* pause (live recording)
+* scheduled recording
+* remote
+* performance improvements (starting a channel is way too slow)
+* watch TV directly in the browser with HTTP_Live_Streaming
+  * https://en.wikipedia.org/wiki/HTTP_Live_Streaming
+  * https://tools.ietf.org/html/rfc8216
 
 ## Contributions
 After cloning the project run:
