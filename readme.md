@@ -82,10 +82,10 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 
 ## Installing as a service with systemd
 If you want the server to start automatically at boot, install it as a service.
-1. edit `watchtv.service`
+1. Edit `watchtv.service`
     * change `ExecStart` path, or copy the files extracted to `/opt/watchtv`
     * change `User` and `Group` or create watchtv user with `useradd -U watchtv -M -G video`
-2. copy `watchtv.service` to `/etc/systemd/system/`
+2. Copy `watchtv.service` to `/etc/systemd/system/`
     ```shell
     $ sudo cp watchtv.service /etc/systemd/system/
     ```
