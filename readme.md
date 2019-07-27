@@ -16,6 +16,7 @@ This is a small server that allows you to watch digital television on your compu
 ```shell
 wget https://github.com/phpbg/watchtv/releases/download/1.0.0/watchtv-1.0.0.tar.gz
 tar xf watchtv-1.0.0.tar.gz
+cd watchtv/
 sudo ./install.sh
 ```
 
