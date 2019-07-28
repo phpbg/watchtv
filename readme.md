@@ -118,6 +118,13 @@ With mpv, try pressing `d` to activate deinterlace
 
 If it works, you can make it permanent with `deinterlace=yes` in `~/.config/mpv/mpv.conf`
 
+### Make Windows 10 / Edge open channels in mpv
+When you use the web interface with edge, you need to tell windows to open channel with, for example, mpv.
+
+1. Download [this file](mpv_register.reg)
+2. Make sure mpv is installed here: `C:\\Program Files\\mpv\\mpv.exe` or update the downloaded file with the correct path
+4. Run the file (double click on it)
+
 ## Ideas for future releases
 * Packaging for common linux distributions
 * Support Fedora and arch in install script
