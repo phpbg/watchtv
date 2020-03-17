@@ -18,10 +18,3 @@
     text-decoration: none;
     height: 100%;
 }
-
-nav ul {
-    padding: 0px;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-}

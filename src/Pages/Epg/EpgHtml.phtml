@@ -1,0 +1,20 @@
+<div id="app">
+    <div ref="container" class="w3-container">
+        <h1 class="w3-center">Guide</h1>
+        <div v-if="! eitAggregators">Please wait...</div>
+        <div v-if="eitAggregators" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" :style="computeContainerStyle()">
+            <div class="days">
+                <div class="dayStep" v-for="(dayTimestamp, i) in days" :key="i" :style="computeStyleFromDayStep(dayTimestamp)">{{dayTimestamp | toDay}}</div>
+                <div class="blank"></div>
+            </div>
+            <div class="hours">
+                <div class="hourStep" v-for="(hourTimestamp, j) in hours" :key="j" :style="computeStyleFromHourStep(hourTimestamp)">{{hourTimestamp | toHour}}</div>
+                <div class="blank"></div>
+            </div>
+            <div class="channel" v-for="channel in orderedChannels">
+                <div class="event w3-hover-green" v-for="(event, k) in getEventsForChannel(channel)" :key="k" :style="computeStyleFromEPGEvent(event)" :title="getEitShortText(event)">{{getEitName(event)}}</div>
+                <div class="channelName">{{channel["NAME"]}}</div>
+            </div>
+        </div>
+    </div>
+</div>

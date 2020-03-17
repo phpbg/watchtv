@@ -37,6 +37,7 @@ use PhpBg\MiniHttpd\Renderer\Json;
 use PhpBg\MiniHttpd\Renderer\Phtml\Phtml;
 use PhpBg\MiniHttpd\ServerFactory;
 use PhpBg\WatchTv\Pages\Epg\Epg;
+use PhpBg\WatchTv\Pages\Epg\EpgHtml;
 use React\Socket\Server;
 
 class HTTPServer
@@ -55,12 +56,14 @@ class HTTPServer
             '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext, $dvbContext->isRelease), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels, $dvbContext->isRelease), $defaultRenderer),
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
+            '/epg-html' => new Route(new EpgHtml(), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop, $dvbContext->logger), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
             '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),
             '/api/channels/logical-numbers' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'logicalNumbers'], new Json()),
             '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'reload'], new Json()),
-            '/api/epg/get-running' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getRunning'], new Json())
+            '/api/epg/get-running' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getRunning'], new Json()),
+            '/api/epg/get-all' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getAll'], new Json())
         ];
         $dvbContext->routes = $routes;
         $dvbContext->publicPath = $dvbContext->rootPath . '/public';

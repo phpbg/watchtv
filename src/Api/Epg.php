@@ -78,4 +78,35 @@ class Epg
         }
         return $runningEvents;
     }
+
+    /**
+     * Return all eit events
+     *
+     * @return EitEvent[]
+     */
+    public function getAll(ServerRequestInterface $request)
+    {
+        // Allow for partial output because epg data may contain non-utf8
+        // TODO: remove those non utf-8 char (control codes? e.g. character emphasis?)
+        $context = $this->getContext($request);
+        $context->renderOptions[Json::JSON_OPTIONS_KEY] = JSON_PARTIAL_OUTPUT_ON_ERROR;
+
+        $aggregators = [];
+        foreach ($this->epgGrabber->getEitAggregators() as $eitAggregator) {
+            $events = $eitAggregator->getAllEvents();
+            foreach ($events as $event) {
+                foreach ($event->descriptors as &$descriptor) {
+                    $descriptor->_descriptorName = get_class($descriptor);
+                }
+            }
+            $aggregator = [
+                'serviceId' => $eitAggregator->serviceId,
+                'transportStreamId' => $eitAggregator->transportStreamId,
+                'networkId' => $eitAggregator->originalNetworkId,
+                'events' => $eitAggregator->getAllEvents()
+            ];
+            $aggregators[] = $aggregator;
+        }
+        return $aggregators;
+    }
 }
