@@ -25,5 +25,6 @@ class EpgHtml
             "/moment-2.24.0.min.js",
         ];
         $context->renderOptions['headCss'] = ['/w3css-4.12.css'];
+        return ['now' => time()];
     }
 }

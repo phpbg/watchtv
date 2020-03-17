@@ -10,6 +10,7 @@ new Vue({
         timeRatio: 10,
         hourDisplayStep: 30 * 60,
         mouseOrigin: null,
+        timeOffset: null
     },
     computed: {
         orderedChannels: function () {
@@ -78,6 +79,9 @@ new Vue({
     },
     created() {
         var that = this;
+        const now = Math.floor(Date.now() / 1000) - 3600;
+        this.timeOffset = now - serverReferenceTimestamp;
+
         $.ajax({
             url: '/api/channels/get-all',
             success: function (channels) {
@@ -149,6 +153,15 @@ new Vue({
                 height = height * (2 + this.channels.length);
             }
             return `height: ${height}px`;
+        },
+        computeNowLineStyle() {
+            const now = Math.floor(Date.now() / 1000) - 3600;
+            const left = Math.round((now - this.timeReference - this.timeOffset)/this.timeRatio);
+            let height = 30;
+            if (this.channels != null) {
+                height = height * (2 + this.channels.length);
+            }
+            return `left: ${left}px;height: ${height}px`;
         },
         dragStart(event) {
             this.mouseOrigin = event.clientX;

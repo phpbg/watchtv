@@ -1,3 +1,4 @@
+<script>var serverReferenceTimestamp = <?=$this->now?>;</script>
 <div id="app">
     <div ref="container" class="w3-container">
         <h1 class="w3-center">Guide</h1>
@@ -15,6 +16,7 @@
                 <div class="event w3-hover-green" v-for="(event, k) in getEventsForChannel(channel)" :key="k" :style="computeStyleFromEPGEvent(event)" :title="getEitShortText(event)">{{getEitName(event)}}</div>
                 <div class="channelName">{{channel["NAME"]}}</div>
             </div>
+            <div class="nowLine" :style="computeNowLineStyle()"></div>
         </div>
     </div>
 </div>

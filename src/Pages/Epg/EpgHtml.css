@@ -6,7 +6,7 @@
     height: 30px;
 }
 
-.channel, .hours, .days {
+.epgContainer, .channel, .hours, .days {
     position: relative;
     overflow: hidden;
 }
@@ -54,4 +54,11 @@
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Opera and Firefox */
+}
+
+.nowLine {
+    position: absolute;
+    top: 0px;
+    width: 2px;
+    border: 1px solid red;
 }
