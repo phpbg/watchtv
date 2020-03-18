@@ -1,25 +1,24 @@
-.epgContainer {
-    border: 1px solid darkgray;
+.epgAndChannelContainer {
+    display: flex;
 }
 
-.channel {
+.bordered {
+    outline: solid 1px darkgray;
+}
+
+.epgContainer {
+    flex-grow: 2;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    width: 50%;
+}
+
+.commonHeight {
     height: 30px;
 }
 
 .epgContainer, .channel, .hours, .days {
     position: relative;
-    overflow: hidden;
-}
-
-.channelName, .blank {
-    position: absolute;
-    left: 0px;
-    background-color: white;
-
-    border: 1px solid darkgray;
-    height: 30px;
-    line-height: 28px;
-    width: 150px;
 }
 
 .event {
@@ -30,19 +29,11 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    border: 1px solid darkgray;
-    height: 30px;
     line-height: 28px;
-}
-
-.hours, .days {
-    height: 30px;
 }
 
 .hourStep, .dayStep {
     position: absolute;
-    border: 1px solid darkgray;
-    height: 30px;
     line-height: 28px;
 }
 
@@ -52,8 +43,9 @@
     -khtml-user-select: none; /* Konqueror HTML */
     -moz-user-select: none; /* Old versions of Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Opera and Firefox */
+    user-select: none;
+    /* Non-prefixed version, currently
+                                     supported by Chrome, Opera and Firefox */
 }
 
 .nowLine {

@@ -4,15 +4,23 @@ new Vue({
         channels: null,
         logicalChannelsNumbers: null,
         eitAggregators: null,
-
-        timeReference: Math.floor(Date.now() / 1000) - 3600,
-        timeReferenceOrigin: null,
         timeRatio: 10,
         hourDisplayStep: 30 * 60,
         mouseOrigin: null,
-        timeOffset: null
+        scrollOrigin: null,
+        firstTimeScoll: false,
+        now: Math.floor(Date.now() / 1000)
+    },
+    updated: function() {
+        if (! (this.firstTimeScoll) && this.$refs.epgContainer) {
+            const x = Math.round((this.now - this.timeReference)/this.timeRatio) - this.$refs.epgContainer.offsetWidth/2;
+            this.$refs.epgContainer.scroll(x, 0)
+        }
     },
     computed: {
+        showEpg: function() {
+            return this.channels !== null && this.eitAggregators !== null
+        },
         orderedChannels: function () {
             if (this.channels == null) {
                 return null;
@@ -53,6 +61,10 @@ new Vue({
                 }, {min: now, max: now})
 
         },
+        timeReference() {
+            if (this.minMaxTimestamp == null) return null;
+            return this.minMaxTimestamp.min;
+        },
         hours() {
             const hours = [];
             const min = this.minMaxTimestamp.min - (this.minMaxTimestamp.min%this.hourDisplayStep);
@@ -79,9 +91,6 @@ new Vue({
     },
     created() {
         var that = this;
-        const now = Math.floor(Date.now() / 1000) - 3600;
-        this.timeOffset = now - serverReferenceTimestamp;
-
         $.ajax({
             url: '/api/channels/get-all',
             success: function (channels) {
@@ -155,8 +164,7 @@ new Vue({
             return `height: ${height}px`;
         },
         computeNowLineStyle() {
-            const now = Math.floor(Date.now() / 1000) - 3600;
-            const left = Math.round((now - this.timeReference - this.timeOffset)/this.timeRatio);
+            const left = Math.round((this.now - this.timeReference)/this.timeRatio);
             let height = 30;
             if (this.channels != null) {
                 height = height * (2 + this.channels.length);
@@ -165,15 +173,13 @@ new Vue({
         },
         dragStart(event) {
             this.mouseOrigin = event.clientX != null ? event.clientX : event.touches[0].clientX;
-            this.timeReferenceOrigin = this.timeReference;
+            this.scrollOrigin = this.$refs.epgContainer.scrollLeft;
         },
         drag(event) {
             if (this.mouseOrigin !== null) {
                 const newx = event.clientX != null ? event.clientX : event.touches[0].clientX;
                 const dx = newx - this.mouseOrigin;
-                // skip small moves, like tiny x move when you try to scroll on y on touchscreen
-                if (Math.abs(dx) < 5) return;
-                this.timeReference = this.timeReferenceOrigin - this.timeRatio * dx;
+                this.$refs.epgContainer.scroll(this.scrollOrigin-dx, 0);
             }
         },
         dragStop() {
@@ -190,15 +196,7 @@ new Vue({
         getEventsForChannel(channel) {
             const eitAggregator = this.getEitAggregator(channel);
             if (eitAggregator == null || eitAggregator.events == null) return [];
-
-            var min = this.timeReference - 4 * 3600;
-            var max = this.timeReference + 4 * 3600;
-            if (this.$refs.container) {
-                max = this.timeReference + 2*this.$refs.container.offsetWidth * this.timeRatio;
-            }
-
-            return eitAggregator.events
-                .filter((event) => event.startTimestamp > min && (event.startTimestamp + event.duration) < max)
+            return eitAggregator.events;
         }
     },
     filters: {
