@@ -3,7 +3,7 @@
         <h1 class="w3-center">Guide</h1>
         <div v-if="! showEpg">Please wait...</div>
         <div v-if="showEpg" class="epgAndChannelContainer bordered">
-            <div>
+            <div class="channelNames bordered">
                 <div class="commonHeight bordered"></div>
                 <div class="commonHeight bordered"></div>
                 <div v-for="channel in orderedChannels" class="commonHeight bordered">

@@ -2,8 +2,11 @@
     display: flex;
 }
 
-.bordered {
-    outline: solid 1px darkgray;
+.channelNames {
+    max-width: 25%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .epgContainer {
@@ -11,6 +14,11 @@
     overflow-x: scroll;
     overflow-y: hidden;
     width: 50%;
+}
+
+
+.bordered {
+    outline: solid 1px darkgray;
 }
 
 .commonHeight {
