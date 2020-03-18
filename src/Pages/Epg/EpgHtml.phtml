@@ -6,22 +6,59 @@
             <div>
                 <div class="commonHeight bordered"></div>
                 <div class="commonHeight bordered"></div>
-                <div v-for="(channel, channelIdx) in orderedChannels" class="commonHeight bordered">
+                <div v-for="channel in orderedChannels" class="commonHeight bordered">
                     {{channel["NAME"]}}
                 </div>
             </div>
-            <div ref="epgContainer" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" :style="computeContainerStyle()">
+            <div ref="epgContainer" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" :style="containerStyle">
                 <div class="days commonHeight">
-                    <div class="dayStep commonHeight bordered" v-for="dayTimestamp in days" :style="computeStyleFromDayStep(dayTimestamp)">{{dayTimestamp | toDay}}</div>
+                    <div class="dayStep commonHeight bordered" v-for="day in daysWithStyle" :style="day.style">{{day.timestamp | toDay}}</div>
                 </div>
                 <div class="hours commonHeight">
-                    <div class="hourStep commonHeight bordered" v-for="hourTimestamp in hours" :style="computeStyleFromHourStep(hourTimestamp)">{{hourTimestamp | toHour}}</div>
+                    <div class="hourStep commonHeight bordered" v-for="hour in hoursWithStyle" :style="hour.style">{{hour.timestamp | toHour}}</div>
                 </div>
-                <div class="channel commonHeight" v-for="(channel, channelIdx) in orderedChannels">
-                    <div class="event w3-hover-green commonHeight bordered" v-for="event in getEventsForChannel(channel)" :style="computeStyleFromEPGEvent(event)" :title="getEitShortText(event)">{{getEitName(event)}}</div>
+                <div class="channel commonHeight" v-for="channel in orderedChannels">
+                    <div class="event w3-hover-green commonHeight bordered" v-for="event in eventsByChannel[channel.SERVICE_ID]" @click="eventSelected = event" :style="event._style">{{getEitName(event)}}</div>
                 </div>
-                <div class="nowLine" :style="computeNowLineStyle()"></div>
+                <div class="nowLine" :style="nowLineStyle"></div>
             </div>
         </div>
     </div>
+
+    <modal v-if="eventSelected" @close="eventSelected = null">
+        <div slot="header">
+            {{getEitName(eventSelected)}}
+        </div>
+        <div slot="body" >
+            <p><b>{{ getChannelName(eventSelected) }}</b><br>{{ eventSelected.startTimestamp | toDatetime }}, {{eventSelected.duration | toDurationMin}}min</p>
+            <p>{{getEitShortText(eventSelected)}}</p>
+        </div>
+    </modal>
+
 </div>
+
+<script type="text/x-template" id="modal-template">
+    <transition name="modal">
+        <div class="modal-mask">
+            <div class="modal-wrapper" @click="$emit('close')">
+                <div class="modal-container" @click.stop="" role="dialog" aria-modal="true" aria-label="Modal" @keyup.esc="$emit('close')" tabindex="0">
+                    <div class="modal-header">
+                        <slot name="header">
+                        </slot>
+                    </div>
+
+                    <div class="modal-body">
+                        <slot name="body">
+                        </slot>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button @click="$emit('close')" title="Close" aria-label="Close">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+</script>

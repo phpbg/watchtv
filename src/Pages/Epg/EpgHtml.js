@@ -1,3 +1,7 @@
+Vue.component('modal', {
+    template: '#modal-template'
+});
+
 new Vue({
     el: '#app',
     data: {
@@ -9,7 +13,9 @@ new Vue({
         mouseOrigin: null,
         scrollOrigin: null,
         firstTimeScoll: false,
-        now: Math.floor(Date.now() / 1000)
+        now: Math.floor(Date.now() / 1000),
+        eventSelected: null,
+        commonHeight: 30,
     },
     updated: function() {
         if (! (this.firstTimeScoll) && this.$refs.epgContainer) {
@@ -74,6 +80,14 @@ new Vue({
             }
             return hours;
         },
+        hoursWithStyle() {
+            return this.hours.map((hourTimestamp) => {
+                return {
+                    timestamp: hourTimestamp,
+                    style: this.computeStyleFromHourStep(hourTimestamp)
+                };
+            })
+        },
         days() {
             let first = null;
             if (this.hours.length > 0) {
@@ -87,7 +101,43 @@ new Vue({
 
             days.unshift(first);
             return days;
-        }
+        },
+        daysWithStyle() {
+            return this.days.map((dayTimestamp) => {
+                return {
+                    timestamp: dayTimestamp,
+                    style: this.computeStyleFromDayStep(dayTimestamp)
+                };
+            })
+        },
+        eventsByChannel() {
+            if (this.eitAggregators == null) return [];
+            const eitAggregatorsByChannel = {};
+            this.eitAggregators.forEach((aggregator) => {
+                eitAggregatorsByChannel[aggregator.serviceId] = aggregator.events || [];
+                eitAggregatorsByChannel[aggregator.serviceId].forEach((event) => {
+                    event._style = this.computeStyleFromEPGEvent(event);
+                    event._serviceId = aggregator.serviceId;
+                    return event;
+                })
+            });
+            return eitAggregatorsByChannel;
+        },
+        containerStyle() {
+            let height = this.commonHeight;
+            if (this.channels != null) {
+                height = height * (2 + this.channels.length);
+            }
+            return `height: ${height}px`;
+        },
+        nowLineStyle() {
+            const left = Math.round((this.now - this.timeReference)/this.timeRatio);
+            let height = this.commonHeight;
+            if (this.channels != null) {
+                height = height * (2 + this.channels.length);
+            }
+            return `left: ${left}px;height: ${height}px`;
+        },
     },
     created() {
         var that = this;
@@ -156,21 +206,6 @@ new Vue({
             const duration = Math.min(24 * 3600, maxTimestamp - hourTimestamp);
             return this.computeStyle(hourTimestamp, duration)
         },
-        computeContainerStyle() {
-            let height = 30;
-            if (this.channels != null) {
-                height = height * (2 + this.channels.length);
-            }
-            return `height: ${height}px`;
-        },
-        computeNowLineStyle() {
-            const left = Math.round((this.now - this.timeReference)/this.timeRatio);
-            let height = 30;
-            if (this.channels != null) {
-                height = height * (2 + this.channels.length);
-            }
-            return `left: ${left}px;height: ${height}px`;
-        },
         dragStart(event) {
             this.mouseOrigin = event.clientX != null ? event.clientX : event.touches[0].clientX;
             this.scrollOrigin = this.$refs.epgContainer.scrollLeft;
@@ -185,18 +220,13 @@ new Vue({
         dragStop() {
             this.mouseOrigin = null;
         },
-        getEitAggregator(channel) {
-            if (this.eitAggregators == null) return [];
-            const eitaggregator = this
-                .eitAggregators
-                .filter((aggregator) => aggregator.serviceId == channel.SERVICE_ID);
-            if (eitaggregator.length === 0) return {};
-            return eitaggregator[0];
-        },
-        getEventsForChannel(channel) {
-            const eitAggregator = this.getEitAggregator(channel);
-            if (eitAggregator == null || eitAggregator.events == null) return [];
-            return eitAggregator.events;
+        getChannelName(event) {
+            if (this.channels == null) return '';
+            return this
+                .channels
+                .filter((channel) => channel.SERVICE_ID == event._serviceId)
+                .map((value) => value.NAME)
+                .reduce((acc, value) => value);
         }
     },
     filters: {
@@ -208,5 +238,13 @@ new Vue({
             const date = moment.unix(timestamp);
             return date.format('LT');
         },
+        toDatetime(timestamp) {
+            const date = moment.unix(timestamp);
+            return date.format('LLLL');
+        },
+        toDurationMin(seconds) {
+            const duration = moment.duration(1000*seconds);
+            return duration.asMinutes();
+        }
     }
 });
