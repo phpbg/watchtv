@@ -164,12 +164,13 @@ new Vue({
             return `left: ${left}px;height: ${height}px`;
         },
         dragStart(event) {
-            this.mouseOrigin = event.clientX;
+            this.mouseOrigin = event.clientX != null ? event.clientX : event.touches[0].clientX;
             this.timeReferenceOrigin = this.timeReference;
         },
         drag(event) {
             if (this.mouseOrigin !== null) {
-                const dx = event.clientX - this.mouseOrigin;
+                const newx = event.clientX != null ? event.clientX : event.touches[0].clientX;
+                const dx = newx - this.mouseOrigin;
                 this.timeReference = this.timeReferenceOrigin - 2 * this.timeRatio * dx;
             }
         },

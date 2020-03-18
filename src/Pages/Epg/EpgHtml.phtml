@@ -3,7 +3,7 @@
     <div ref="container" class="w3-container">
         <h1 class="w3-center">Guide</h1>
         <div v-if="! eitAggregators">Please wait...</div>
-        <div v-if="eitAggregators" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" :style="computeContainerStyle()">
+        <div v-if="eitAggregators" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:touchstart="dragStart" v-on:mousemove="drag" v-on:touchmove="drag" v-on:mouseup="dragStop" v-on:touchend="dragStop" v-on:touchcancel="dragStop" :style="computeContainerStyle()">
             <div class="days">
                 <div class="dayStep" v-for="(dayTimestamp, i) in days" :key="i" :style="computeStyleFromDayStep(dayTimestamp)">{{dayTimestamp | toDay}}</div>
                 <div class="blank"></div>
