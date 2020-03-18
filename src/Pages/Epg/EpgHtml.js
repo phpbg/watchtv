@@ -171,7 +171,9 @@ new Vue({
             if (this.mouseOrigin !== null) {
                 const newx = event.clientX != null ? event.clientX : event.touches[0].clientX;
                 const dx = newx - this.mouseOrigin;
-                this.timeReference = this.timeReferenceOrigin - 2 * this.timeRatio * dx;
+                // skip small moves, like tiny x move when you try to scroll on y on touchscreen
+                if (Math.abs(dx) < 5) return;
+                this.timeReference = this.timeReferenceOrigin - this.timeRatio * dx;
             }
         },
         dragStop() {
