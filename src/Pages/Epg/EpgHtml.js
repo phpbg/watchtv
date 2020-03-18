@@ -244,7 +244,7 @@ new Vue({
         },
         toDurationMin(seconds) {
             const duration = moment.duration(1000*seconds);
-            return duration.asMinutes();
+            return Math.round(duration.asMinutes());
         }
     }
 });
