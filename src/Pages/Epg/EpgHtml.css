@@ -7,6 +7,7 @@
 }
 
 .channelNames {
+    z-index: 1; /* fix right border under epgContainer */
     max-width: 25%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -22,7 +23,7 @@
 
 
 .bordered {
-    outline: solid 1px darkgray;
+    outline: solid 1px #aaa;
 }
 
 .commonHeight {
@@ -67,7 +68,13 @@
     border: 1px solid red;
 }
 
+.striped:nth-child(odd) {
+    background-color: #EEE;
+}
 
+.childStriped:nth-child(odd) > * {
+    background-color: #EEE;
+}
 
 .modal-mask {
     position: fixed;

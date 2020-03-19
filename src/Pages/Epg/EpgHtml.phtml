@@ -6,7 +6,7 @@
             <div class="channelNames bordered">
                 <div class="commonHeight bordered"></div>
                 <div class="commonHeight bordered"></div>
-                <div v-for="channel in orderedChannels" class="commonHeight bordered">
+                <div v-for="channel in orderedChannels" class="commonHeight bordered striped">
                     {{channel["NAME"]}}
                 </div>
             </div>
@@ -17,7 +17,7 @@
                 <div class="hours commonHeight">
                     <div class="hourStep commonHeight bordered" v-for="hour in hoursWithStyle" :style="hour.style">{{hour.timestamp | toHour}}</div>
                 </div>
-                <div class="channel commonHeight" v-for="channel in orderedChannels">
+                <div class="channel commonHeight childStriped" v-for="channel in orderedChannels">
                     <div class="event w3-hover-green commonHeight bordered" v-for="event in eventsByChannel[channel.SERVICE_ID]" @click="eventSelected = event" :style="event._style">{{getEitName(event)}}</div>
                 </div>
                 <div class="nowLine" :style="nowLineStyle"></div>
