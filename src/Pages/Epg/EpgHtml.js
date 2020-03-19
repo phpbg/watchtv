@@ -18,6 +18,7 @@ new Vue({
         now: Math.floor(Date.now() / 1000),
         eventSelected: null,
         commonHeight: 30,
+        clickPrevented: false,
     },
     updated: function() {
         if (this.firstTimeScoll && this.$refs.epgContainer) {
@@ -218,6 +219,7 @@ new Vue({
         },
         drag(event) {
             if (this.mouseOrigin !== null) {
+                this.clickPrevented = true;
                 const newx = event.clientX != null ? event.clientX : event.touches[0].clientX;
                 const dx = newx - this.mouseOrigin;
                 this.$refs.epgContainer.scroll(this.scrollOrigin-dx, 0);
@@ -225,6 +227,7 @@ new Vue({
         },
         dragStop() {
             this.mouseOrigin = null;
+            setTimeout(() => this.clickPrevented = false)
         },
         getChannelName(event) {
             if (this.channels == null) return '';
@@ -233,6 +236,10 @@ new Vue({
                 .filter((channel) => channel.SERVICE_ID == event._serviceId)
                 .map((value) => value.NAME)
                 .reduce((acc, value) => value);
+        },
+        selectEvent(event) {
+            if (this.clickPrevented) return;
+            this.eventSelected = event
         }
     },
     filters: {
