@@ -34,6 +34,7 @@ else
 fi
 
 echo "Copying to /opt/watchtv"
+rm -rf /opt/watchtv
 cp -r ./ /opt/watchtv
 
 echo "Installing systemd service"
