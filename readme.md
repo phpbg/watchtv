@@ -16,8 +16,8 @@ This is a small server that allows you to watch digital television on your compu
 
 ## Quick installation (debian, raspbian, ubuntu)
 ```shell
-wget https://github.com/phpbg/watchtv/releases/download/1.0.0/watchtv-1.0.0.tar.gz
-tar xf watchtv-1.0.0.tar.gz
+wget https://github.com/phpbg/watchtv/releases/download/1.1.0/watchtv-1.1.0.tar.gz
+tar xf watchtv-1.1.0.tar.gz
 cd watchtv/
 sudo ./install.sh
 ```
@@ -74,7 +74,7 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
-    $ tar xf watchtv-1.0.0.tar.gz
+    $ tar xf watchtv-1.1.0.tar.gz
     ```
 3. Test the server manually
     ```shell
