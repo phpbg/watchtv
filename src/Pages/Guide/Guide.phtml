@@ -30,7 +30,13 @@
             {{getEitName(eventSelected)}}
         </div>
         <div slot="body" >
-            <p><b>{{ getChannelName(eventSelected) }}</b><br>{{ eventSelected.startTimestamp | toDatetime }}, {{eventSelected.duration | toDurationMin}}min</p>
+            <p>
+                <b>{{ getChannelName(eventSelected) }}</b>
+                <br>
+                {{ eventSelected.startTimestamp | toDatetime }}, {{eventSelected.duration | toDurationMin}}min
+                <br>
+                {{ getCategory(eventSelected) }}
+            </p>
             <p>{{getEitShortText(eventSelected)}}</p>
         </div>
     </modal>

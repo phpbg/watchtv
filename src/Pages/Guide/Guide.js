@@ -10,6 +10,7 @@ new Vue({
         channels: null,
         logicalChannelsNumbers: null,
         eitAggregators: null,
+        contentDescriptors: null,
         timeRatio: 10,
         hourDisplayStep: 30 * 60,
         mouseOrigin: null,
@@ -163,6 +164,12 @@ new Vue({
                 that.eitAggregators = Object.freeze(eitAggregators);
             },
         });
+        $.ajax({
+            url: '/api/content-descriptors',
+            success: function (contentDescriptors) {
+                that.contentDescriptors = Object.freeze(contentDescriptors);
+            },
+        });
         setInterval(function () {
             that.now = Math.floor(Date.now() / 1000);
         }, 120000);
@@ -236,6 +243,23 @@ new Vue({
                 .filter((channel) => channel.SERVICE_ID == event._serviceId)
                 .map((value) => value.NAME)
                 .reduce((acc, value) => value);
+        },
+        getCategory(event) {
+            if (this.contentDescriptors == null) return '';
+            const nibbles = event
+                .descriptors
+                .filter((descriptor) => descriptor._descriptorName === 'PhpBg\\DvbPsi\\Descriptors\\Content')
+                .map((descriptor) => descriptor.nibbles)
+                .reduce((previousValue, currentNibbles) => {
+                    return currentNibbles;
+                }, []);
+            const contents = nibbles.reduce((previousValue, current) => {
+                if (this.contentDescriptors[current[0]][current[1]]) {
+                    previousValue.push(this.contentDescriptors[current[0]][current[1]]);
+                }
+                return previousValue;
+            }, []);
+            return contents.join(', ');
         },
         selectEvent(event) {
             if (this.clickPrevented) return;

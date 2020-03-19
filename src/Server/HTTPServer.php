@@ -27,6 +27,7 @@
 namespace PhpBg\WatchTv\Server;
 
 use PhpBg\WatchTv\Api\CheckConfiguration;
+use PhpBg\WatchTv\Api\ContentDescriptors;
 use PhpBg\WatchTv\Api\InitialScanFiles;
 use PhpBg\WatchTv\Pages\Channels\Channels;
 use PhpBg\WatchTv\Pages\Channels\M3u8;
@@ -63,7 +64,8 @@ class HTTPServer
             '/api/channels/logical-numbers' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'logicalNumbers'], new Json()),
             '/api/channels/reload' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'reload'], new Json()),
             '/api/epg/get-running' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getRunning'], new Json()),
-            '/api/epg/get-all' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getAll'], new Json())
+            '/api/epg/get-all' => new Route([new \PhpBg\WatchTv\Api\Epg($dvbContext->epgGrabber), 'getAll'], new Json()),
+            '/api/content-descriptors' => new Route(new ContentDescriptors(), new Json()),
         ];
         $dvbContext->routes = $routes;
         $dvbContext->publicPath = $dvbContext->rootPath . '/public';
