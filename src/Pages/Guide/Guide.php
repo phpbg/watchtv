@@ -1,13 +1,13 @@
 <?php
 
 
-namespace PhpBg\WatchTv\Pages\Epg;
+namespace PhpBg\WatchTv\Pages\Guide;
 
 
 use PhpBg\MiniHttpd\Middleware\ContextTrait;
 use Psr\Http\Message\ServerRequestInterface;
 
-class EpgHtml
+class Guide
 {
     use ContextTrait;
 

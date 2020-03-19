@@ -37,7 +37,7 @@ use PhpBg\MiniHttpd\Renderer\Json;
 use PhpBg\MiniHttpd\Renderer\Phtml\Phtml;
 use PhpBg\MiniHttpd\ServerFactory;
 use PhpBg\WatchTv\Pages\Epg\Epg;
-use PhpBg\WatchTv\Pages\Epg\EpgHtml;
+use PhpBg\WatchTv\Pages\Guide\Guide;
 use React\Socket\Server;
 
 class HTTPServer
@@ -56,7 +56,7 @@ class HTTPServer
             '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext, $dvbContext->isRelease), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels, $dvbContext->isRelease), $defaultRenderer),
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
-            '/guide' => new Route(new EpgHtml($dvbContext->isRelease), $defaultRenderer),
+            '/guide' => new Route(new Guide($dvbContext->isRelease), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop, $dvbContext->logger), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
             '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),
