@@ -160,6 +160,9 @@ new Vue({
                 that.eitAggregators = Object.freeze(eitAggregators);
             },
         });
+        setInterval(function () {
+            that.now = Math.floor(Date.now() / 1000);
+        }, 120000);
     },
     methods: {
         getEitName: function (eit) {
