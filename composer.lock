@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "5abf8e0333c58d5ef31f8c6f441475c8",
+    "content-hash": "aeff61c1185b0c9599f9f30b7b65bbfb",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -35,6 +35,7 @@
             ],
             "description": "Promoting the interoperability of container objects (DIC, SL, etc.)",
             "homepage": "https://github.com/container-interop/container-interop",
+            "abandoned": "psr/container",
             "time": "2017-02-14T19:40:03+00:00"
         },
         {
@@ -243,16 +244,16 @@
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.4.2",
+            "version": "0.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "7b38377fd3a6506091a60ea494c820856bd65a3f"
+                "reference": "2946b5daf74796be2c128cda4b5fdbf1b62ed007"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/7b38377fd3a6506091a60ea494c820856bd65a3f",
-                "reference": "7b38377fd3a6506091a60ea494c820856bd65a3f",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/2946b5daf74796be2c128cda4b5fdbf1b62ed007",
+                "reference": "2946b5daf74796be2c128cda4b5fdbf1b62ed007",
                 "shasum": ""
             },
             "require": {
@@ -262,12 +263,13 @@
                 "php": ">=7.0",
                 "psr/http-message": "^1.0",
                 "psr/log": "^1.0",
-                "react/http": "0.8.4",
+                "react/http": "^0.8.5",
                 "react/promise": "^2.7",
                 "zendframework/zend-filter": "^2.8",
                 "zendframework/zend-validator": "^2.10"
             },
             "require-dev": {
+                "phpstan/phpstan": "^0.12.2",
                 "phpunit/phpunit": "^6.5"
             },
             "suggest": {
@@ -298,7 +300,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-03-28T09:36:47+00:00"
+            "time": "2019-12-13T22:02:05+00:00"
         },
         {
             "name": "phpbg/mpegts",
@@ -809,16 +811,16 @@
         },
         {
             "name": "react/http",
-            "version": "v0.8.4",
+            "version": "v0.8.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/http.git",
-                "reference": "b29ab96557ac5c53e738fcb26f73f631a3f81f1a"
+                "reference": "248202e57195d06a4375f6d2f5c5b9ff9da3ea9e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/http/zipball/b29ab96557ac5c53e738fcb26f73f631a3f81f1a",
-                "reference": "b29ab96557ac5c53e738fcb26f73f631a3f81f1a",
+                "url": "https://api.github.com/repos/reactphp/http/zipball/248202e57195d06a4375f6d2f5c5b9ff9da3ea9e",
+                "reference": "248202e57195d06a4375f6d2f5c5b9ff9da3ea9e",
                 "shasum": ""
             },
             "require": {
@@ -832,7 +834,7 @@
             },
             "require-dev": {
                 "clue/block-react": "^1.1",
-                "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+                "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35"
             },
             "type": "library",
             "autoload": {
@@ -853,7 +855,7 @@
                 "server",
                 "streaming"
             ],
-            "time": "2019-01-16T07:26:32+00:00"
+            "time": "2020-01-12T13:15:06+00:00"
         },
         {
             "name": "react/promise",
@@ -1224,6 +1226,7 @@
                 "filter",
                 "zf"
             ],
+            "abandoned": "laminas/laminas-filter",
             "time": "2018-12-17T16:00:04+00:00"
         },
         {
@@ -1270,6 +1273,7 @@
                 "stdlib",
                 "zf"
             ],
+            "abandoned": "laminas/laminas-stdlib",
             "time": "2018-08-28T21:34:05+00:00"
         },
         {
@@ -1343,6 +1347,7 @@
                 "validator",
                 "zf2"
             ],
+            "abandoned": "laminas/laminas-validator",
             "time": "2018-12-13T21:23:15+00:00"
         }
     ],
@@ -2876,7 +2881,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "backendtea@gmail.com"
+                    "email": "BackEndTea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",
