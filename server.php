@@ -56,8 +56,11 @@ $dvbZap = new \PhpBg\WatchTv\ProcessAdapter\DvbzapProcessAdapter($dvbContext->lo
 $promises[] = $dvbZap->works()->then(function($works) use ($dvbZap, $dvbContext) {
     if ($works) {
         $dvbZap->getLogger()->notice("dvb-zap is present");
-        $dvbContext->tunerProcessAdapter = $dvbZap;
-        $dvbContext->tsStreamFactory->setTunerProcessAdapter($dvbZap);
+        // Use dvb-zap only if dvbjet not present
+        if (! isset($dvbContext->tunerProcessAdapter)) {
+            $dvbContext->tunerProcessAdapter = $dvbZap;
+            $dvbContext->tsStreamFactory->setTunerProcessAdapter($dvbZap);
+        }
     } else {
         $dvbZap->getLogger()->notice("dvb-zap is **not** present");
         $dvbZap->getLogger()->notice("dvb-zap is a tuner, it is required to play channels. Install it if you don't have another one");
