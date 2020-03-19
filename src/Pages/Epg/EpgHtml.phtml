@@ -10,7 +10,7 @@
                     {{channel["NAME"]}}
                 </div>
             </div>
-            <div ref="epgContainer" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" :style="containerStyle">
+            <div ref="epgContainer" class="epgContainer noselect" v-on:mousedown="dragStart" v-on:mousemove="drag" v-on:mouseup="dragStop" v-on:mouseleave="dragStop" :style="containerStyle">
                 <div class="days commonHeight">
                     <div class="dayStep commonHeight bordered" v-for="day in daysWithStyle" :style="day.style">{{day.timestamp | toDay}}</div>
                 </div>
