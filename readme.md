@@ -1,11 +1,13 @@
 # Watch TV
 This is a small server that allows you to watch digital television on your computer and your local network.
 
-![](screenshot.png)
+![](channels.png)
+
+![](guide.png)
 
 ## Features
 * scan and configure TV channels
-* browse your TV channels from a web browser
+* browse your TV channels and EPG from a web browser
 * view current EPG while browsing channels
 * stream tv using RTSP 1.0
 * Kodi support, see [below](#kodi)
@@ -128,7 +130,6 @@ When you use the web interface with edge, you need to tell windows to open chann
 ## Ideas for future releases
 * Packaging for common linux distributions
 * Support Fedora and arch in install script
-* browse whole electronic program guide (EPG) on the web interface (currently you can just view running EPG in the web page, full EPG is available with Kodi)
 * live update web interface to reflect avaliable channels when a stream is already running
 * multiple adapter support
 * pause (live recording)
