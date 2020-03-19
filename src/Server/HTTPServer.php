@@ -49,14 +49,14 @@ class HTTPServer
      */
     public function __construct(Context $dvbContext)
     {
-        $defaultRenderer = new Phtml($dvbContext->rootPath . '/src/Pages/layout.phtml');
+        $defaultRenderer = new Phtml($dvbContext->rootPath . '/src/Pages/layout.phtml', $dvbContext->logger);
         $routes = [
             '/' => new Route(new Channels($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext, $dvbContext->isRelease), $defaultRenderer),
             '/about' => new Route(new About(), $defaultRenderer),
             '/channels/m3u8' => new Route(new M3u8($dvbContext->rtspPort, $dvbContext->channels, $dvbContext->dvbGlobalContext, $dvbContext->isRelease), $defaultRenderer),
             '/configure' => new Route(new Configure($dvbContext->channels, $dvbContext->isRelease), $defaultRenderer),
             '/epg' => new Route(new Epg($dvbContext->epgGrabber, $dvbContext->channels), $defaultRenderer),
-            '/guide' => new Route(new EpgHtml(), $defaultRenderer),
+            '/guide' => new Route(new EpgHtml($dvbContext->isRelease), $defaultRenderer),
             '/api/check-configuration' => new Route(new CheckConfiguration($dvbContext->loop, $dvbContext->logger), new Json()),
             '/api/initial-scan-files' => new Route(new InitialScanFiles($dvbContext->channels), new Json()),
             '/api/channels/get-all' => new Route([new \PhpBg\WatchTv\Api\Channels($dvbContext->channels, $dvbContext->dvbGlobalContext), 'getAll'], new Json()),

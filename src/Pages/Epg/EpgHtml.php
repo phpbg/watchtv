@@ -11,6 +11,13 @@ class EpgHtml
 {
     use ContextTrait;
 
+    private $isRelease;
+
+    public function __construct(bool $isRelease)
+    {
+        $this->isRelease = $isRelease;
+    }
+
     /**
      * Main homepage listing channels
      * @param ServerRequestInterface $request
@@ -20,7 +27,7 @@ class EpgHtml
     {
         $context = $this->getContext($request);
         $context->renderOptions['bottomScripts'] = [
-            $this->isRelease ? "/vue-2.5.22.min.js" : "/vue-2.5.22.js",
+            $this->isRelease ? "/vue-2.6.11.min.js" : "/vue-2.6.11.js",
             "/jquery-3.3.1.min.js",
             "/moment-2.24.0.min.js",
         ];
