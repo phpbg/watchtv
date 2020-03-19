@@ -12,13 +12,14 @@ new Vue({
         hourDisplayStep: 30 * 60,
         mouseOrigin: null,
         scrollOrigin: null,
-        firstTimeScoll: false,
+        firstTimeScoll: true,
         now: Math.floor(Date.now() / 1000),
         eventSelected: null,
         commonHeight: 30,
     },
     updated: function() {
-        if (! (this.firstTimeScoll) && this.$refs.epgContainer) {
+        if (this.firstTimeScoll && this.$refs.epgContainer) {
+            this.firstTimeScoll = false;
             const x = Math.round((this.now - this.timeReference)/this.timeRatio) - this.$refs.epgContainer.offsetWidth/2;
             this.$refs.epgContainer.scroll(x, 0)
         }
