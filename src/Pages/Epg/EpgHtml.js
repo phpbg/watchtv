@@ -157,7 +157,7 @@ new Vue({
         $.ajax({
             url: '/api/epg/get-all',
             success: function (eitAggregators) {
-                that.eitAggregators = eitAggregators;
+                that.eitAggregators = Object.freeze(eitAggregators);
             },
         });
     },
