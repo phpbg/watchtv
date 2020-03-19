@@ -1,3 +1,5 @@
+moment.locale(window.navigator.language ?? 'en');
+
 Vue.component('modal', {
     template: '#modal-template'
 });
