@@ -40,7 +40,11 @@ You can run the server and the client on the same device if you want.
   * [VLC](https://www.videolan.org/vlc): expect troubles with VLC
     * TCP does not work with VLC (it is supported but I didn't manage to make it work)
     * UDP is the default and works, but glitches are expected, probably because TS stream should be converted to RTP? (if you know well RTSP and RTP please feedback wanted)
-  * <a name="kodi"></a>[Kodi](https://kodi.tv/) using [IPTV Simple Client](https://kodi.wiki/view/Add-on:IPTV_Simple_Client) You can copy m3u and epg URLs from main channels page (links at bottom). I highly recommend you disable caching channels in IPTV plugin configuration **and** in kodi PVR settings 
+  * <a name="kodi"></a>[Kodi](https://kodi.tv/) using [IPTV Simple Client](https://kodi.wiki/view/Add-on:IPTV_Simple_Client)
+    
+    Follow [this guide](https://kodi.wiki/view/Watchtv_PVR)
+    
+    You can copy m3u and epg URLs from main channels page (links at bottom). I highly recommend you disable caching channels in IPTV plugin configuration **and** in kodi PVR settings 
 * Android
   * [MPV-android](https://play.google.com/store/apps/details?id=is.xyz.mpv) (recommended)
   * [VLC for Android](https://play.google.com/store/apps/details?id=org.videolan.vlc) (same limitations as VLC for desktop)
