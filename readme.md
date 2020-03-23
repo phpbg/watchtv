@@ -62,15 +62,28 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
 
 ## Manual installation
 
-1. Install requirements
-    Ubuntu / raspbian
-    ```shell
-    $ sudo apt install php-cli dvb-tools
-    ```
-    Debian (run as root)
-    ```shell
-    # apt install php-cli dvb-tools
-    ```
+1. Install requirements :
+   * [PHP cli](https://www.php.net/)
+   * [DVB scanner](https://www.linuxtv.org/wiki/index.php/Dvbv5-scan)
+   * Either this [DVB tuner](https://www.linuxtv.org/wiki/index.php/Dvbv5-zap) or this one, faster and simpler: [dvbjet](https://github.com/lightful/DVBdirect)
+   
+   Those requirements are already packaged in most ditributions:
+   **Ubuntu / raspbian**
+   ```shell
+   $ sudo apt install php-cli dvb-tools
+   ```
+   **Debian (as root)**
+   ```shell
+   # apt install php-cli dvb-tools
+   ```   
+   **Archlinux**
+   ```shell
+   $ sudo pacman -S php v4l-utils
+   ```
+   **Fedora (as root)**
+   ```shell
+   # dnf install php-cli v4l-utils
+   ```
 2. Download latest release package from https://github.com/phpbg/watchtv/releases
 3. Extract it
     ```shell
@@ -81,8 +94,10 @@ A raspberry zero-w is enough, although I recommend you something more reliable:
     $ cd watchtv
     $ php server.php
     ```
+   * Make sure there is no error.
+   * You will be instructed to open a browser (on local machine or from your local network) to finish the configuration
 
-## Installing as a service with systemd
+## Installing as a service with systemd (auto start at boot)
 If you want the server to start automatically at boot, install it as a service.
 1. Edit `watchtv.service`
     * change `ExecStart` path, or copy the files extracted to `/opt/watchtv`
