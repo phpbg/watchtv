@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aeff61c1185b0c9599f9f30b7b65bbfb",
+    "content-hash": "78d6ceaaf5af7424e4dab373d0fcb07d",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -244,16 +244,16 @@
         },
         {
             "name": "phpbg/mini-httpd",
-            "version": "0.4.3",
+            "version": "0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbg/mini-httpd.git",
-                "reference": "2946b5daf74796be2c128cda4b5fdbf1b62ed007"
+                "reference": "a604f348f8fbfba357e0ab1fdef6de85069ea0f3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/2946b5daf74796be2c128cda4b5fdbf1b62ed007",
-                "reference": "2946b5daf74796be2c128cda4b5fdbf1b62ed007",
+                "url": "https://api.github.com/repos/phpbg/mini-httpd/zipball/a604f348f8fbfba357e0ab1fdef6de85069ea0f3",
+                "reference": "a604f348f8fbfba357e0ab1fdef6de85069ea0f3",
                 "shasum": ""
             },
             "require": {
@@ -263,7 +263,7 @@
                 "php": ">=7.0",
                 "psr/http-message": "^1.0",
                 "psr/log": "^1.0",
-                "react/http": "^0.8.5",
+                "react/http": "^1.0",
                 "react/promise": "^2.7",
                 "zendframework/zend-filter": "^2.8",
                 "zendframework/zend-validator": "^2.10"
@@ -300,7 +300,7 @@
                 "react",
                 "server"
             ],
-            "time": "2019-12-13T22:02:05+00:00"
+            "time": "2021-03-20T12:47:10+00:00"
         },
         {
             "name": "phpbg/mpegts",
@@ -811,30 +811,35 @@
         },
         {
             "name": "react/http",
-            "version": "v0.8.6",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/http.git",
-                "reference": "248202e57195d06a4375f6d2f5c5b9ff9da3ea9e"
+                "reference": "865694453c95122f8972b9ed7961efb3c517fc5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/http/zipball/248202e57195d06a4375f6d2f5c5b9ff9da3ea9e",
-                "reference": "248202e57195d06a4375f6d2f5c5b9ff9da3ea9e",
+                "url": "https://api.github.com/repos/reactphp/http/zipball/865694453c95122f8972b9ed7961efb3c517fc5e",
+                "reference": "865694453c95122f8972b9ed7961efb3c517fc5e",
                 "shasum": ""
             },
             "require": {
                 "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
                 "php": ">=5.3.0",
+                "psr/http-message": "^1.0",
+                "react/event-loop": "^1.0 || ^0.5",
                 "react/promise": "^2.3 || ^1.2.1",
                 "react/promise-stream": "^1.1",
-                "react/socket": "^1.0 || ^0.8.3",
-                "react/stream": "^1.0 || ^0.7.1",
+                "react/socket": "^1.1",
+                "react/stream": "^1.0 || ^0.7.5",
                 "ringcentral/psr7": "^1.2"
             },
             "require-dev": {
                 "clue/block-react": "^1.1",
-                "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35"
+                "clue/http-proxy-react": "^1.3",
+                "clue/reactphp-ssh-proxy": "^1.0",
+                "clue/socks-react": "^1.0",
+                "phpunit/phpunit": "^9.0 || ^5.7 || ^4.8.35"
             },
             "type": "library",
             "autoload": {
@@ -846,16 +851,43 @@
             "license": [
                 "MIT"
             ],
-            "description": "Event-driven, streaming plaintext HTTP and secure HTTPS server for ReactPHP",
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Event-driven, streaming HTTP client and server implementation for ReactPHP",
             "keywords": [
+                "async",
+                "client",
                 "event-driven",
                 "http",
+                "http client",
+                "http server",
                 "https",
+                "psr-7",
                 "reactphp",
                 "server",
                 "streaming"
             ],
-            "time": "2020-01-12T13:15:06+00:00"
+            "time": "2020-07-11T13:29:43+00:00"
         },
         {
             "name": "react/promise",
@@ -2131,6 +2163,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2017-11-27T05:48:46+00:00"
         },
         {
@@ -2939,12 +2972,12 @@
             "version": "1.4.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/assert.git",
+                "url": "https://github.com/webmozarts/assert.git",
                 "reference": "83e253c8e0be5b0257b881e1827274667c5c17a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/83e253c8e0be5b0257b881e1827274667c5c17a9",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/83e253c8e0be5b0257b881e1827274667c5c17a9",
                 "reference": "83e253c8e0be5b0257b881e1827274667c5c17a9",
                 "shasum": ""
             },
@@ -2995,5 +3028,6 @@
         "php": ">=7.0",
         "ext-pcntl": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
