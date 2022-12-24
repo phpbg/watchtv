@@ -99,6 +99,22 @@ class TSStreamFactory
                     });
                 }
                 $this->doCreateTsStream($channelDescriptor);
+            } else {
+                $curStream = $this->streamsByChannelFrequency[$channelFrequency];
+                // in the case exit process in ongoing, we need to wait it ends before creating a new TsStream
+                if ($curStream->isExiting()) {
+                    $this->logger->debug("getTsStream() while isExiting() == true");
+                    $exitPromise = new Promise(function (callable $exitResolver) use ($curStream) {
+                        $curStream->on('exit', function () use ($exitResolver) {
+                            $this->logger->debug("on exit executed");
+                            return $exitResolver();
+                        });
+                    });
+                    return $exitPromise->then(function () use ($resolver, $channelDescriptor, $channelFrequency) {
+                        $this->logger->debug("doCreateTsStream delayed after on exit");
+                        return $resolver($this->doCreateTsStream($channelDescriptor));
+                    });
+                }
             }
             return $resolver($this->streamsByChannelFrequency[$channelFrequency]);
         });

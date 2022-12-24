@@ -90,6 +90,11 @@ class TSStream extends EventEmitter
      */
     private $channels;
 
+    /**
+     * @var Exiting
+     * Indicating exit process started. This process depends on termination delay.
+     */
+    private $exiting = false;
     private $exited = false;
 
     /**
@@ -276,6 +281,7 @@ class TSStream extends EventEmitter
 
         $this->emit('exit');
         $this->removeAllListeners();
+        $this->exiting = false;
     }
 
     /**
@@ -431,6 +437,15 @@ class TSStream extends EventEmitter
     }
 
     /**
+     * Return the exiting status
+     * @return bool
+     */
+    public function isExiting()
+    {
+        return $this->exiting;
+    }
+
+    /**
      * Terminate process forcefully
      */
     public function terminate()
@@ -438,6 +453,7 @@ class TSStream extends EventEmitter
         if ($this->exited) {
             return;
         }
+        $this->exiting = true;
         $this->logger->debug("Terminate process " . $this->process->getCommand());
         if (!$this->process->terminate(SIGKILL)) {
             throw new \RuntimeException("Unable to signal process");
