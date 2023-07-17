@@ -72,7 +72,7 @@ class M3u8 extends AbstractChannelsController
         }
 
         foreach ($channels as $channelDescriptor) {
-            $content .= "#EXTINF:-1 tvg-id=\"{$channelDescriptor['SERVICE_ID']}\",{$channelDescriptor['NAME']}\r\n";
+            $content .= "#EXTINF:-1 tvg-id=\"{$channelDescriptor['SERVICE_ID']}\",{$channelDescriptor['NAME']->replace("'","")}\r\n";
             $content .= "rtsp://{$host}:{$this->rtspPort}/{$channelDescriptor['SERVICE_ID']}\r\n";
         }
 
