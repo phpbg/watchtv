@@ -75,7 +75,7 @@ class Channels
                 throw new ChannelsNotFoundException("{$this->filepath} is not a file");
             }
 
-            $this->channelsByName = parse_ini_file($this->filepath, true);
+            $this->channelsByName = parse_ini_file($this->filepath, true, INI_SCANNER_RAW);
             if ($this->channelsByName === false) {
                 throw new ChannelsNotFoundException("{$this->filepath} is not a valid channel file");
             }
