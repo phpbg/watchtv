@@ -66,7 +66,7 @@ class DvbzapProcessAdapter extends AbstractProcessAdapter implements TunerProces
         }
         $channelsFilePath = $this->channels->getChannelsFilePath();
         $channelName = $channelDescriptor['NAME'];
-        $processLine = "exec dvbv5-zap -c {$channelsFilePath} -v --lna=-1 '{$channelName}' -P -o -";
+        $processLine = "exec dvbv5-zap -c {$channelsFilePath} -v --lna=-1 \"{$channelName}\" -P -o -";
         $this->logger->debug("Starting $processLine");
         return new Process($processLine);
     }
